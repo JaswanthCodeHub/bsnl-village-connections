@@ -46,11 +46,15 @@ const EXPORT_COLUMNS = [
 /* ===========================
    MongoDB Connection
    =========================== */
-let db;
-let connectionsCollection;
+let client = null;
+let db = null;
+let connectionsCollection = null;
 
-async function connectToMongo() {
-  const client = new MongoClient(MONGODB_URI);
+async function getCollection() {
+  if (connectionsCollection) {
+    return connectionsCollection;
+  }
+  client = new MongoClient(MONGODB_URI);
   await client.connect();
   db = client.db(DB_NAME);
   connectionsCollection = db.collection(COLLECTION_NAME);
@@ -61,7 +65,7 @@ async function connectToMongo() {
   await connectionsCollection.createIndex({ area: 1 }).catch(() => {});
 
   console.log('Connected to MongoDB successfully.');
-  return client;
+  return connectionsCollection;
 }
 
 /* ===========================
@@ -195,6 +199,7 @@ app.use(express.static(path.join(ROOT, 'public')));
 // GET all connections
 app.get('/api/connections', async (_req, res, next) => {
   try {
+    const connectionsCollection = await getCollection();
     const connections = await connectionsCollection
       .find({})
       .sort({ createdAt: -1 })
@@ -209,6 +214,7 @@ app.get('/api/connections', async (_req, res, next) => {
 // POST new connection
 app.post('/api/connections', async (req, res, next) => {
   try {
+    const connectionsCollection = await getCollection();
     const connection = cleanConnection(req.body);
     const validationError = validateConnection(connection);
     if (validationError) return res.status(400).json({ error: validationError });
@@ -222,6 +228,7 @@ app.post('/api/connections', async (req, res, next) => {
 // PUT update connection
 app.put('/api/connections/:id', async (req, res, next) => {
   try {
+    const connectionsCollection = await getCollection();
     const existing = await connectionsCollection.findOne({ id: req.params.id });
     if (!existing) return res.status(404).json({ error: 'Connection not found.' });
     const connection = cleanConnection(req.body, stripId(existing));
@@ -238,6 +245,7 @@ app.put('/api/connections/:id', async (req, res, next) => {
 // DELETE connection
 app.delete('/api/connections/:id', async (req, res, next) => {
   try {
+    const connectionsCollection = await getCollection();
     const result = await connectionsCollection.deleteOne({ id: req.params.id });
     if (result.deletedCount === 0) return res.status(404).json({ error: 'Connection not found.' });
     res.status(204).end();
@@ -248,6 +256,7 @@ app.delete('/api/connections/:id', async (req, res, next) => {
 app.post('/api/import', upload.single('file'), async (req, res, next) => {
   if (!req.file) return res.status(400).json({ error: 'Please select an Excel or CSV file.' });
   try {
+    const connectionsCollection = await getCollection();
     const selectedArea = cleanText(req.body.area, 100);
     if (!selectedArea) return res.status(400).json({ error: 'Please select an area or route before replacing data.' });
     const workbook = new ExcelJS.Workbook();
@@ -287,6 +296,7 @@ app.post('/api/import', upload.single('file'), async (req, res, next) => {
 // GET export to Excel
 app.get('/api/export', async (req, res, next) => {
   try {
+    const connectionsCollection = await getCollection();
     const selectedArea = cleanText(req.query.area, 100);
     const query = selectedArea ? { area: selectedArea } : {};
     const connections = await connectionsCollection.find(query).toArray();
@@ -309,6 +319,7 @@ app.get('/api/export', async (req, res, next) => {
 // GET backup as JSON download
 app.get('/api/backup', async (_req, res, next) => {
   try {
+    const connectionsCollection = await getCollection();
     const connections = await connectionsCollection.find({}).toArray();
     const backup = {
       connections: connections.map(stripId),
@@ -331,12 +342,14 @@ app.use((error, _req, res, _next) => {
 /* ===========================
    Start Server
    =========================== */
-connectToMongo().then(() => {
-  app.listen(PORT, () => console.log(`BSNL Connection Manager running at http://localhost:${PORT}`));
-}).catch((error) => {
-  console.error('Failed to connect to MongoDB:', error.message);
-  process.exit(1);
-});
+if (process.env.NODE_ENV !== 'production' && !process.env.VERCEL) {
+  getCollection().then(() => {
+    app.listen(PORT, () => console.log(`BSNL Connection Manager running at http://localhost:${PORT}`));
+  }).catch((error) => {
+    console.error('Failed to connect to MongoDB:', error.message);
+    process.exit(1);
+  });
+}
 
 // Export for Vercel serverless
 module.exports = app;
