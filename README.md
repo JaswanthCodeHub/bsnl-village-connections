@@ -1,35 +1,40 @@
 # BSNL Connection Manager
 
-మీ నాన్నగారి BSNL connection data ను locally store చేసి, add/edit చేయడానికి చేసిన website.
+A web application designed to manage BSNL FTTH connection records with search, filter, and bulk Excel import/export features.
 
-## మొదలుపెట్టడం
+## Getting Started (Local Development)
 
-1. ఈ folder లో terminal తెరవండి.
-2. మొదటిసారి మాత్రమే `npm install` చేయండి.
-3. తర్వాత `npm start` చేయండి.
-4. Browser లో `http://localhost:3000` తెరవండి.
+1. Open a terminal in this directory.
+2. Install dependencies:
+   ```bash
+   npm install
+   ```
+3. Start the application:
+   ```bash
+   npm start
+   ```
+4. Open your browser and navigate to `http://localhost:3000`.
 
-## అందులో ఉన్నవి
+## Key Features
 
-- కొత్త BSNL customer / connection add చేయడం
-- ఉన్న record edit లేదా delete చేయడం
-- పేరు, మొబైల్ నంబర్, connection నంబర్ ద్వారా search చేయడం
-- `.xlsx` లేదా `.csv` Excel file import చేయడం
-- మొత్తం data ని Excel file గా export చేయడం
-- Backup కోసం JSON download చేయడం
+- **Manage Connections**: Add, edit, or delete BSNL customer connections.
+- **Search & Filter**: Search by VLAN, Name, Landline, or User ID. Filter customers by specific villages/routes.
+- **Excel Import (Replace)**: Easily import Excel (`.xlsx` or `.csv`) files to replace records for a specific area/route without affecting other areas.
+- **Excel Export**: Download all connections or filtered connections as a beautifully formatted Excel sheet.
+- **JSON Backup**: Download a local JSON backup of all records in one click.
 
-ప్రతి record కి village ఉంటుంది. ప్రస్తుతం Garalapadu, Pedavaripalem, మరియు Kommuru కోసం filter ఉంది.
+## Supported Excel Column Headers
 
-> Area / Route ఎంచుకుని కొత్త Excel file replace చేస్తే, ఎంచుకున్న area records మాత్రమే తొలగి కొత్త file లోని records save అవుతాయి. మిగతా areas data మారదు.
+During Excel import, the app automatically matches column headers (case-insensitive) like:
+- **VLAN No**: `VLAN NO`, `VLAN NUMBER`, `VLAN`
+- **Customer Name**: `NAME`, `CUSTOMER NAME`, `SUBSCRIBER NAME` (Required)
+- **Landline No**: `LANDLINE NO`, `CONNECTION NUMBER`, `NUMBER`
+- **User ID**: `USER ID`, `USERID`, `BSNL USER ID`
+- **Notes**: `NOTES`, `REMARKS`, `COMMENT`
 
-## Excel columns
+*Note: At least the Customer Name column must have a value to import successfully. Other fields can be updated later via the web interface.*
 
-మీ Excel లో ఈ column names ఉంటే auto గా import అవుతుంది:
+## Database
 
-`VLAN NO`, `NAME`, `LANDLINE NO`, `USER ID`, `Status`, `Notes`
-
-కనీసం **NAME** ఉండాలి. మిగిలినవి ఖాళీగా ఉన్నా తర్వాత website లో edit చేయవచ్చు.
-
-## డేటా ఎక్కడ ఉంటుంది?
-
-మీ records ఈ project లోని `data/connections.json` file లో save అవుతాయి. కాబట్టి ఆ folder ని backup గా copy చేసుకుంటే data safe గా ఉంటుంది. ఇది local website; ఈ computer లోనే తెరుచుకుంటుంది, public internet లో upload కాదు.
+- The project uses **MongoDB Atlas** as its cloud database for production deployments.
+- For local testing, ensure your `MONGODB_URI` environment variable is configured.
