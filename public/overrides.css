@@ -1,0 +1,171 @@
+/* ===========================
+   Layout Overrides
+   =========================== */
+
+/* Replace control - sits inside toolbar, acts as a button */
+.replace-control {
+  display: flex;
+  align-items: center;
+}
+
+.replace-control .replace-button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: auto;
+  min-height: 40px;
+  padding: 0 14px;
+  margin: 0;
+  border-color: #ccd8e6;
+  white-space: nowrap;
+  cursor: pointer;
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: normal;
+  text-transform: none;
+  color: var(--navy);
+  background: #fff;
+}
+
+.replace-control .replace-button:hover {
+  color: #082f68;
+  background: #f2f7fd;
+  transform: translateY(-1px);
+}
+
+/* ===========================
+   Name Column Sizing
+   =========================== */
+.name-column {
+  min-width: 280px;
+  text-align: left;
+}
+
+td.name-column {
+  vertical-align: middle;
+}
+
+.name-column .customer-name {
+  overflow: hidden;
+  font-size: 13px;
+  letter-spacing: 0.01em;
+  line-height: 1.45;
+  text-overflow: ellipsis;
+  text-transform: uppercase;
+  white-space: nowrap;
+  max-width: 360px;
+}
+
+/* ===========================
+   Mobile (≤600px)
+   =========================== */
+@media (max-width: 600px) {
+  .topbar {
+    position: sticky;
+    top: 0;
+    z-index: 10;
+    padding: 0 14px;
+  }
+
+  .brand h1 {
+    font-size: 14px;
+  }
+
+  .topbar .button {
+    min-height: 42px;
+    padding: 0 12px;
+  }
+
+  .intro h2 {
+    font-size: 22px;
+    line-height: 1.28;
+  }
+
+  .actions-card input,
+  .actions-card select {
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .toolbar .button,
+  .toolbar .text-button,
+  .replace-control .replace-button {
+    width: 100%;
+    min-height: 44px;
+    justify-content: center;
+  }
+
+  .toolbar .text-button {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    border: 1px solid #ccd8e6;
+    border-radius: 8px;
+    background: #fff;
+  }
+
+  .replace-control {
+    width: 100%;
+  }
+
+  .table-card {
+    margin-top: 12px;
+  }
+
+  .table-heading {
+    padding: 14px 16px;
+  }
+
+  table {
+    min-width: 780px;
+  }
+
+  th,
+  td {
+    padding: 12px 14px;
+  }
+
+  .modal {
+    width: calc(100vw - 16px);
+    max-height: calc(100vh - 16px);
+  }
+
+  .form-grid {
+    grid-template-columns: 1fr;
+    gap: 14px;
+    padding: 18px;
+  }
+
+  .form-grid .full {
+    grid-column: auto;
+  }
+
+  .form-grid input,
+  .form-grid select {
+    min-height: 44px;
+    font-size: 14px;
+  }
+
+  .suffix-input span {
+    padding: 0 7px;
+    font-size: 9px;
+  }
+
+  .modal-header,
+  .modal-footer {
+    padding: 16px 18px;
+  }
+
+  .modal-footer .button {
+    flex: 1;
+    min-height: 44px;
+  }
+
+  .name-column {
+    min-width: 220px;
+  }
+
+  .name-column .customer-name {
+    max-width: 220px;
+  }
+}

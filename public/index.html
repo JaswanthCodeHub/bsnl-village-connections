@@ -1,0 +1,255 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#0a4f9b" />
+    <title>BSNL Connection Manager</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+Telugu:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="overrides.css" />
+  </head>
+  <body>
+    <div class="app-shell">
+
+      <!-- ===== Top Bar ===== -->
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">B</span>
+          <div>
+            <h1>BSNL Fiber Manager</h1>
+            <p>All BSNL connections by area and route</p>
+          </div>
+        </div>
+        <button id="addButton" class="button primary" type="button">
+          <span>＋</span> Add customer
+        </button>
+      </header>
+
+      <!-- ===== Main Content ===== -->
+      <main>
+
+        <!-- Intro Section -->
+        <section class="intro">
+          <div>
+            <p class="eyebrow">DASHBOARD</p>
+            <h2>All your BSNL Fiber data, in one place.</h2>
+            <p>View each village separately, or search every customer at once.</p>
+          </div>
+        </section>
+
+        <!-- Actions Card: Search, Filter, Toolbar -->
+        <section class="actions-card">
+          <div class="search-wrap">
+            <label for="searchInput">SEARCH</label>
+            <input
+              id="searchInput"
+              type="search"
+              placeholder="VLAN number, name, landline or user ID…"
+            />
+          </div>
+
+          <div class="filter-wrap">
+            <label for="areaFilter">AREA / ROUTE</label>
+            <select id="areaFilter">
+              <option value="">All areas and routes</option>
+              <option value="Garalapadu">Garalapadu</option>
+              <option value="Pedavaripalem">Pedavaripalem</option>
+              <option value="Kommuru">Kommuru</option>
+              <option value="OLT to Parchur Side">OLT to Parchur Side</option>
+              <option value="PNP Sai Temple to Nagulapadu">PNP Sai Temple to Nagulapadu</option>
+              <option value="OLT to Varagani">OLT to Varagani</option>
+              <option value="PNP Bodaraya to Kommuru">PNP Bodaraya to Kommuru</option>
+              <option value="Bankers">Bankers</option>
+              <option value="Schools">Schools</option>
+              <option value="Offices">Offices</option>
+            </select>
+          </div>
+
+          <div class="toolbar">
+            <div class="replace-control">
+              <label
+                id="replaceLabel"
+                for="excelFile"
+                class="button secondary replace-button"
+              >
+                ↻ Replace selected Excel
+              </label>
+            </div>
+            <input id="excelFile" type="file" accept=".xlsx,.csv" hidden />
+            <a id="exportButton" class="button secondary" href="/api/export">
+              Download all Excel
+            </a>
+            <a class="text-button" href="/api/backup">Backup JSON</a>
+          </div>
+        </section>
+
+        <!-- Table Card: Customer Connections -->
+        <section class="table-card">
+          <div class="table-heading">
+            <div>
+              <h3>Customer connections</h3>
+              <p id="resultCount">0 results</p>
+            </div>
+            <button id="clearFilters" class="text-button" type="button">
+              Clear filters
+            </button>
+          </div>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Area / Route</th>
+                  <th>VLAN No</th>
+                  <th class="name-column">Customer name</th>
+                  <th>Landline No</th>
+                  <th>User ID</th>
+                  <th aria-label="Actions"></th>
+                </tr>
+              </thead>
+              <tbody id="connectionsBody"></tbody>
+            </table>
+          </div>
+
+          <div id="mobileCards" class="mobile-cards"></div>
+
+          <div id="emptyState" class="empty-state" hidden>
+            <div class="empty-icon">⌁</div>
+            <h3>No customers yet</h3>
+            <p>Add a customer manually or import your Excel file to get started.</p>
+            <button id="emptyAddButton" class="button primary" type="button">
+              ＋ Add customer
+            </button>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- ===== Add / Edit Customer Dialog ===== -->
+    <dialog id="connectionDialog" class="modal">
+      <form id="connectionForm" method="dialog" autocomplete="off" novalidate>
+
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow" id="modalEyebrow">NEW CUSTOMER</p>
+            <h2 id="modalTitle">Add a customer</h2>
+          </div>
+          <button class="icon-button" value="cancel" aria-label="Close" type="submit">
+            ×
+          </button>
+        </div>
+
+        <input id="connectionId" type="hidden" />
+
+        <div class="form-grid">
+          <label>
+            Area / Route <span>*</span>
+            <select id="area" required>
+              <option value="">Select area or route</option>
+              <option value="Garalapadu">Garalapadu</option>
+              <option value="Pedavaripalem">Pedavaripalem</option>
+              <option value="Kommuru">Kommuru</option>
+              <option value="OLT to Parchur Side">OLT to Parchur Side</option>
+              <option value="PNP Sai Temple to Nagulapadu">PNP Sai Temple to Nagulapadu</option>
+              <option value="OLT to Varagani">OLT to Varagani</option>
+              <option value="PNP Bodaraya to Kommuru">PNP Bodaraya to Kommuru</option>
+              <option value="Bankers">Bankers</option>
+              <option value="Schools">Schools</option>
+              <option value="Offices">Offices</option>
+            </select>
+          </label>
+
+          <label>
+            VLAN number
+            <input
+              id="vlanNo"
+              inputmode="numeric"
+              maxlength="100"
+              autocomplete="new-password"
+              placeholder="e.g. 157"
+            />
+          </label>
+
+          <label>
+            Customer name <span>*</span>
+            <input
+              id="customerName"
+              required
+              maxlength="500"
+              autocomplete="new-password"
+              placeholder="e.g. K. Ramesh"
+            />
+          </label>
+
+          <label>
+            Landline number <span>*</span>
+            <input
+              id="landlineNo"
+              required
+              inputmode="tel"
+              maxlength="100"
+              autocomplete="new-password"
+              pattern="08643[- ]?[0-9]{6}"
+              title="Landline number must start with 08643"
+              placeholder="08643-293590"
+            />
+          </label>
+
+          <label>
+            User ID <span>*</span>
+            <div class="suffix-input">
+              <input
+                id="userIdPrefix"
+                required
+                maxlength="450"
+                autocomplete="new-password"
+                placeholder="e.g. 864329358471"
+              />
+              <span>_sid@ftth.bsnl.in</span>
+            </div>
+          </label>
+
+          <label class="full">
+            Notes
+            <textarea
+              id="notes"
+              rows="3"
+              maxlength="2000"
+              autocomplete="new-password"
+              placeholder="Any additional details"
+            ></textarea>
+          </label>
+        </div>
+
+        <div class="modal-footer">
+          <button class="button secondary" value="cancel" type="submit">Cancel</button>
+          <button class="button primary" id="saveButton" type="button">Save customer</button>
+        </div>
+
+      </form>
+    </dialog>
+
+    <!-- ===== Import Dialog ===== -->
+    <dialog id="importDialog" class="small-modal">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">EXCEL IMPORT</p>
+          <h2>Reading your file…</h2>
+        </div>
+      </div>
+      <p id="importMessage">Please wait.</p>
+    </dialog>
+
+    <!-- ===== Toast Notification ===== -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>

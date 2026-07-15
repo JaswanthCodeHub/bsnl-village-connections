@@ -1,0 +1,342 @@
+const express = require('express');
+const multer = require('multer');
+const ExcelJS = require('exceljs');
+const path = require('path');
+const crypto = require('crypto');
+const os = require('os');
+const dns = require('dns');
+const fsp = require('fs/promises');
+const { MongoClient } = require('mongodb');
+
+// Use Google DNS to resolve SRV records (fixes BSNL broadband DNS issues)
+dns.setServers(['8.8.8.8', '8.8.4.4']);
+
+/* ===========================
+   Configuration
+   =========================== */
+const app = express();
+const PORT = process.env.PORT || 3000;
+const ROOT = __dirname;
+const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/bsnl';
+const DB_NAME = 'bsnl_manager';
+const COLLECTION_NAME = 'connections';
+const LANDLINE_PREFIX = '08643';
+const USER_ID_SUFFIX = '_sid@ftth.bsnl.in';
+
+const FIELDS = ['area', 'vlanNo', 'customerName', 'landlineNo', 'userId', 'notes'];
+
+const HEADER_ALIASES = {
+  area: ['area', 'village', 'location', 'place'],
+  vlanNo: ['vlan no', 'vlan number', 'vlan', 'vlanno'],
+  customerName: ['customer name', 'name', 'customer', 'subscriber name', 'customername'],
+  landlineNo: ['landline no', 'landline number', 'landline', 'connection number', 'connection no', 'bsnl number', 'number', 'landlineno'],
+  userId: ['user id', 'userid', 'bsnl user id', 'account id'],
+  notes: ['notes', 'remark', 'remarks', 'comment', 'comments']
+};
+
+const EXPORT_COLUMNS = [
+  ['Village', 'area', 18],
+  ['VLAN No', 'vlanNo', 12],
+  ['Name', 'customerName', 34],
+  ['Landline No', 'landlineNo', 20],
+  ['User ID', 'userId', 35],
+  ['Notes', 'notes', 36]
+];
+
+/* ===========================
+   MongoDB Connection
+   =========================== */
+let db;
+let connectionsCollection;
+
+async function connectToMongo() {
+  const client = new MongoClient(MONGODB_URI);
+  await client.connect();
+  db = client.db(DB_NAME);
+  connectionsCollection = db.collection(COLLECTION_NAME);
+
+  // Create index on 'id' field for fast lookups
+  await connectionsCollection.createIndex({ id: 1 }, { unique: true }).catch(() => {});
+  // Create index on 'area' field for fast area-based queries
+  await connectionsCollection.createIndex({ area: 1 }).catch(() => {});
+
+  console.log('Connected to MongoDB successfully.');
+  return client;
+}
+
+/* ===========================
+   Helper Functions
+   =========================== */
+function cleanText(value, max = 500) {
+  return String(value ?? '').trim().slice(0, max);
+}
+
+function normaliseStatus(value) {
+  const status = cleanText(value, 30).toLowerCase();
+  return ['active', 'inactive', 'pending', 'disconnected'].includes(status) ? status : 'active';
+}
+
+function normaliseLandline(value) {
+  const text = cleanText(value, 100);
+  const digits = text.replace(/\D/g, '');
+  return digits.length === 11 && digits.startsWith(LANDLINE_PREFIX)
+    ? `${digits.slice(0, 5)}-${digits.slice(5)}`
+    : text;
+}
+
+function normaliseUserId(value) {
+  const text = cleanText(value, 500);
+  if (!text) return '';
+  const prefix = text.replace(/_?sid@.*$/i, '').trim();
+  return `${prefix}${USER_ID_SUFFIX}`;
+}
+
+function areaFromFilename(filename) {
+  const value = filename.toLowerCase();
+  if (value.includes('parchur side')) return 'OLT to Parchur Side';
+  if (value.includes('sai temple to nagulapadu')) return 'PNP Sai Temple to Nagulapadu';
+  if (value.includes('olt to varagani')) return 'OLT to Varagani';
+  if (value.includes('bodaraya to kommuru')) return 'PNP Bodaraya to Kommuru';
+  if (value.includes('bankers')) return 'Bankers';
+  if (value.includes('garalapadu')) return 'Garalapadu';
+  if (value.includes('pedavaripalem')) return 'Pedavaripalem';
+  if (value.includes('kommuru')) return 'Kommuru';
+  return 'Imported file';
+}
+
+function validateConnection(connection) {
+  if (!connection.area) return 'Please select a village.';
+  if (!connection.customerName) return 'Customer name is required.';
+  if (!connection.landlineNo) return 'Landline number is required.';
+  const landlineDigits = connection.landlineNo.replace(/\D/g, '');
+  if (!landlineDigits.startsWith(LANDLINE_PREFIX)) return 'Landline number must start with 08643.';
+  if (landlineDigits.length !== 11) return 'Enter the full 11-digit landline number.';
+  if (!connection.userId) return 'User ID is required.';
+  if (!connection.userId.toLowerCase().endsWith(USER_ID_SUFFIX)) return 'User ID must end with _sid@ftth.bsnl.in.';
+  if (connection.userId.length <= USER_ID_SUFFIX.length) return 'Enter the User ID number before the fixed suffix.';
+  return null;
+}
+
+function cleanConnection(source, existing = {}) {
+  const record = {};
+  for (const field of FIELDS) record[field] = cleanText(source[field], field === 'notes' ? 2000 : 500);
+  record.landlineNo = normaliseLandline(record.landlineNo);
+  record.userId = normaliseUserId(record.userId);
+  record.status = normaliseStatus(source.status ?? existing.status ?? 'active');
+  return {
+    ...existing,
+    ...record,
+    updatedAt: new Date().toISOString()
+  };
+}
+
+function findValue(row, expected) {
+  const keys = Object.keys(row);
+  const aliases = HEADER_ALIASES[expected];
+  const matchingKey = keys.find((key) => aliases.includes(String(key).trim().toLowerCase()));
+  return matchingKey === undefined ? '' : row[matchingKey];
+}
+
+function sheetRows(sheet) {
+  const headers = [];
+  sheet.getRow(1).eachCell({ includeEmpty: true }, (cell, column) => {
+    headers[column] = cell.text.trim();
+  });
+  const rows = [];
+  sheet.eachRow({ includeEmpty: false }, (row, rowNumber) => {
+    if (rowNumber === 1) return;
+    const item = {};
+    headers.forEach((header, column) => {
+      if (header) item[header] = row.getCell(column).text;
+    });
+    if (Object.values(item).some((value) => value.trim())) rows.push(item);
+  });
+  return rows;
+}
+
+/* Strip MongoDB _id from documents before sending to client */
+function stripId(doc) {
+  if (!doc) return doc;
+  const { _id, ...rest } = doc;
+  return rest;
+}
+
+/* ===========================
+   Multer (File Upload) Setup
+   =========================== */
+const UPLOAD_DIR = path.join(os.tmpdir(), 'bsnl-uploads');
+
+const storage = multer.diskStorage({
+  destination: async (_req, _file, callback) => {
+    await fsp.mkdir(UPLOAD_DIR, { recursive: true }).catch(() => {});
+    callback(null, UPLOAD_DIR);
+  },
+  filename: (_req, file, callback) => callback(null, `${Date.now()}-${crypto.randomUUID()}${path.extname(file.originalname).toLowerCase()}`)
+});
+const upload = multer({
+  storage,
+  limits: { fileSize: 10 * 1024 * 1024 },
+  fileFilter: (_req, file, callback) => {
+    const accepted = ['.xlsx', '.csv'].includes(path.extname(file.originalname).toLowerCase());
+    callback(accepted ? null : new Error('Only .xlsx or .csv files are allowed.'), accepted);
+  }
+});
+
+/* ===========================
+   Express Middleware
+   =========================== */
+app.use(express.json({ limit: '1mb' }));
+app.use(express.static(path.join(ROOT, 'public')));
+
+/* ===========================
+   API Routes
+   =========================== */
+
+// GET all connections
+app.get('/api/connections', async (_req, res, next) => {
+  try {
+    const connections = await connectionsCollection
+      .find({})
+      .sort({ createdAt: -1 })
+      .toArray();
+    res.json({
+      connections: connections.map(stripId),
+      updatedAt: new Date().toISOString()
+    });
+  } catch (error) { next(error); }
+});
+
+// POST new connection
+app.post('/api/connections', async (req, res, next) => {
+  try {
+    const connection = cleanConnection(req.body);
+    const validationError = validateConnection(connection);
+    if (validationError) return res.status(400).json({ error: validationError });
+    connection.id = crypto.randomUUID();
+    connection.createdAt = connection.updatedAt;
+    await connectionsCollection.insertOne(connection);
+    res.status(201).json({ connection: stripId(connection) });
+  } catch (error) { next(error); }
+});
+
+// PUT update connection
+app.put('/api/connections/:id', async (req, res, next) => {
+  try {
+    const existing = await connectionsCollection.findOne({ id: req.params.id });
+    if (!existing) return res.status(404).json({ error: 'Connection not found.' });
+    const connection = cleanConnection(req.body, stripId(existing));
+    const validationError = validateConnection(connection);
+    if (validationError) return res.status(400).json({ error: validationError });
+    await connectionsCollection.updateOne(
+      { id: req.params.id },
+      { $set: connection }
+    );
+    res.json({ connection: stripId(connection) });
+  } catch (error) { next(error); }
+});
+
+// DELETE connection
+app.delete('/api/connections/:id', async (req, res, next) => {
+  try {
+    const result = await connectionsCollection.deleteOne({ id: req.params.id });
+    if (result.deletedCount === 0) return res.status(404).json({ error: 'Connection not found.' });
+    res.status(204).end();
+  } catch (error) { next(error); }
+});
+
+// POST import Excel/CSV
+app.post('/api/import', upload.single('file'), async (req, res, next) => {
+  if (!req.file) return res.status(400).json({ error: 'Please select an Excel or CSV file.' });
+  try {
+    const selectedArea = cleanText(req.body.area, 100);
+    if (!selectedArea) return res.status(400).json({ error: 'Please select an area or route before replacing data.' });
+    const workbook = new ExcelJS.Workbook();
+    const extension = path.extname(req.file.originalname).toLowerCase();
+    if (extension === '.csv') await workbook.csv.readFile(req.file.path);
+    else await workbook.xlsx.readFile(req.file.path);
+    const sheet = workbook.worksheets[0];
+    const rows = sheet ? sheetRows(sheet) : [];
+    if (!rows.length) return res.status(400).json({ error: 'The selected file has no data rows.' });
+
+    const importedConnections = [];
+    let skipped = 0;
+    for (const row of rows) {
+      const mapped = {};
+      for (const field of FIELDS) mapped[field] = findValue(row, field);
+      mapped.area = selectedArea;
+      const connection = cleanConnection(mapped);
+      if (validateConnection(connection)) { skipped += 1; continue; }
+      connection.id = crypto.randomUUID();
+      connection.createdAt = connection.updatedAt;
+      importedConnections.push(connection);
+    }
+    if (!importedConnections.length) return res.status(400).json({ error: 'No records with a customer name were found in this file. Your existing data was not changed.' });
+
+    // Count existing records for the selected area before deleting
+    const replaced = await connectionsCollection.countDocuments({ area: selectedArea });
+
+    // Delete old records for this area and insert new ones
+    await connectionsCollection.deleteMany({ area: selectedArea });
+    await connectionsCollection.insertMany(importedConnections);
+
+    res.json({ added: importedConnections.length, skipped, replaced, totalRows: rows.length, area: selectedArea });
+  } catch (error) { next(error); }
+  finally { fsp.unlink(req.file.path).catch(() => {}); }
+});
+
+// GET export to Excel
+app.get('/api/export', async (req, res, next) => {
+  try {
+    const selectedArea = cleanText(req.query.area, 100);
+    const query = selectedArea ? { area: selectedArea } : {};
+    const connections = await connectionsCollection.find(query).toArray();
+    const workbook = new ExcelJS.Workbook();
+    workbook.creator = 'BSNL Connection Manager';
+    const sheet = workbook.addWorksheet('BSNL Connections', { views: [{ state: 'frozen', ySplit: 1 }] });
+    sheet.columns = EXPORT_COLUMNS.map(([header, key, width]) => ({ header, key, width }));
+    for (const item of connections) sheet.addRow(item);
+    sheet.getRow(1).font = { bold: true, color: { argb: 'FFFFFFFF' } };
+    sheet.getRow(1).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF0C61B9' } };
+    sheet.autoFilter = { from: 'A1', to: `F${Math.max(1, connections.length + 1)}` };
+    const buffer = await workbook.xlsx.writeBuffer();
+    const date = new Date().toISOString().slice(0, 10);
+    const filePart = selectedArea ? selectedArea.toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '') : 'all-connections';
+    res.setHeader('Content-Disposition', `attachment; filename="bsnl-${filePart}-${date}.xlsx"`);
+    res.type('application/vnd.openxmlformats-officedocument.spreadsheetml.sheet').send(Buffer.from(buffer));
+  } catch (error) { next(error); }
+});
+
+// GET backup as JSON download
+app.get('/api/backup', async (_req, res, next) => {
+  try {
+    const connections = await connectionsCollection.find({}).toArray();
+    const backup = {
+      connections: connections.map(stripId),
+      updatedAt: new Date().toISOString()
+    };
+    const date = new Date().toISOString().slice(0, 10);
+    res.setHeader('Content-Disposition', `attachment; filename="bsnl-backup-${date}.json"`);
+    res.type('application/json').send(JSON.stringify(backup, null, 2));
+  } catch (error) { next(error); }
+});
+
+/* ===========================
+   Error Handler
+   =========================== */
+app.use((error, _req, res, _next) => {
+  console.error(error);
+  res.status(500).json({ error: error.message || 'Something went wrong. Please try again.' });
+});
+
+/* ===========================
+   Start Server
+   =========================== */
+connectToMongo().then(() => {
+  app.listen(PORT, () => console.log(`BSNL Connection Manager running at http://localhost:${PORT}`));
+}).catch((error) => {
+  console.error('Failed to connect to MongoDB:', error.message);
+  process.exit(1);
+});
+
+// Export for Vercel serverless
+module.exports = app;

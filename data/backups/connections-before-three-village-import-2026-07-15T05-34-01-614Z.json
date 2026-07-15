@@ -1,0 +1,291 @@
+{
+  "connections": [
+    {
+      "vlanNo": "487",
+      "customerName": "varagni veeraiah",
+      "landlineNo": "08643-276010",
+      "userId": "vv8643276010_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:22:54.435Z",
+      "id": "bec65ba5-5c84-4a8a-b68d-fce34359aa5b",
+      "createdAt": "2026-07-15T05:22:54.435Z"
+    },
+    {
+      "vlanNo": "456",
+      "customerName": "kishore (palli last)",
+      "landlineNo": "08643-271101",
+      "userId": "kv8643271101_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:15:07.875Z",
+      "id": "058d656a-ae74-4abb-a79e-d905b1c4c7fb",
+      "createdAt": "2026-07-15T05:15:07.875Z"
+    },
+    {
+      "vlanNo": "490",
+      "customerName": "peddi venkatasearlu",
+      "landlineNo": "08643-227592",
+      "userId": "pv8643227592_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:13:02.541Z",
+      "id": "f06fb56b-647a-4d60-ac82-69ddb91ba4b3",
+      "createdAt": "2026-07-15T05:13:02.541Z"
+    },
+    {
+      "vlanNo": "493",
+      "customerName": "karumanch srinivasarao",
+      "landlineNo": "08643-275075",
+      "userId": "ks8643275075_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:11:10.778Z",
+      "id": "b4c7659c-e167-4c2c-81c7-3ef4fe37d9c4",
+      "createdAt": "2026-07-15T05:11:10.778Z"
+    },
+    {
+      "vlanNo": "610",
+      "customerName": "VENKATESH KARMACHI",
+      "landlineNo": "08643-295583",
+      "userId": "id8643295583_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "579cf072-d06e-435f-aa79-f46a5d3386e0",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "155",
+      "customerName": "MANASA PEDDI",
+      "landlineNo": "08643-293843",
+      "userId": "864329380387_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "7bbd86a7-96bb-4874-aced-6874c6991670",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "170",
+      "customerName": "VENKAYA(LCO)",
+      "landlineNo": "08643-293890",
+      "userId": "864329389363_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "a409c440-8f88-4091-9288-0ab4b02214c3",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "240",
+      "customerName": "VINITHA(CHENCHU)",
+      "landlineNo": "08643-294544",
+      "userId": "864329458580_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "d1fd40cc-2ff2-4b31-9c73-1523cfd8bc21",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "314",
+      "customerName": "NAGA RAJESH",
+      "landlineNo": "08643-297424",
+      "userId": "864329741558_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "11f43027-e577-4f46-a28d-81850d663924",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "354",
+      "customerName": "PRASAD(KOVADURU)",
+      "landlineNo": "08643-297586",
+      "userId": "864329757805_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "efa1f713-3bf9-4f1e-b2f9-04d3492b45ec",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "374",
+      "customerName": "RAGHUNADAHA",
+      "landlineNo": "08643-297803",
+      "userId": "864329784487_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "a7084d8a-27f3-425b-985b-015492359a1d",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "396",
+      "customerName": "NAVYA SRI",
+      "landlineNo": "08643-297978",
+      "userId": "864329797295_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "8e856a78-1966-4754-8a1c-b56eaae8d637",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "444",
+      "customerName": "koushik",
+      "landlineNo": "08643-271137",
+      "userId": "kp8643271137_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "827e7656-ff27-4b30-8a92-ac0613b4d0b4",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "510",
+      "customerName": "SRINIVAS GANGA",
+      "landlineNo": "08643-294643",
+      "userId": "sr8643294643_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "bef0ca64-a052-4b17-be5a-78a4d1b7a62c",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "605",
+      "customerName": "RAVITEJA",
+      "landlineNo": "08643-295573",
+      "userId": "id8643295573_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "e1bdfb3c-d7f0-4e0b-9e70-2497b59176ce",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "607",
+      "customerName": "LAKSHMI PRIYA",
+      "landlineNo": "08643-295616",
+      "userId": "id8643295616_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "f8fa9152-cb9b-46bc-8537-32cb31fbb604",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "608",
+      "customerName": "SRINIVAS CHENNUPATI",
+      "landlineNo": "08643-295598",
+      "userId": "id8643295598_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "399e6c95-aaea-4f1b-a955-d95f29823c71",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "613",
+      "customerName": "RAMMENI VIDYA",
+      "landlineNo": "08643-297724",
+      "userId": "id864329772015_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "95b56343-e4b5-4728-9415-be68d4cf6d03",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "673",
+      "customerName": "SUSMITHA PEDDI",
+      "landlineNo": "08643-293967",
+      "userId": "864329394296_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "894c9d3e-3168-4ea0-a5b2-00115c0b5c79",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "709",
+      "customerName": "PAVANI",
+      "landlineNo": "08643-299996",
+      "userId": "pa8643299996_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "728cdeb2-61b3-4e5c-aaa4-35ee58eeb56f",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "749",
+      "customerName": "ANAND BABU(PALLA)",
+      "landlineNo": "08643-294068",
+      "userId": "an8643294068_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "18d8e5db-6b3f-41d0-9e6b-53dd55baa10a",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "750",
+      "customerName": "NAGA SATISH",
+      "landlineNo": "08643-294086",
+      "userId": "na8643294086_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.660Z",
+      "id": "e1f710c6-69ae-49c6-90a0-4809f01bbb9b",
+      "createdAt": "2026-07-15T05:08:46.660Z"
+    },
+    {
+      "vlanNo": "800",
+      "customerName": "SRINIVAS CHAKRAVATHI PEDDI",
+      "landlineNo": "08643-293181",
+      "userId": "sr8643293181_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.661Z",
+      "id": "3b27cde1-afa8-457f-a733-ba03605b3b2a",
+      "createdAt": "2026-07-15T05:08:46.661Z"
+    },
+    {
+      "vlanNo": "460",
+      "customerName": "ANIRUDRUDU ALLA",
+      "landlineNo": "08643-246546",
+      "userId": "aa8643246546_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.661Z",
+      "id": "a1e6c8bf-1e26-4729-aa2b-b2a32353800e",
+      "createdAt": "2026-07-15T05:08:46.661Z"
+    },
+    {
+      "vlanNo": "461",
+      "customerName": "PEDI SRINIVASA RAO (RATION DEALER)",
+      "landlineNo": "08643-246862",
+      "userId": "sp8643246862_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.661Z",
+      "id": "473a22bd-aa87-4b1c-8209-654c3e77f3ce",
+      "createdAt": "2026-07-15T05:08:46.661Z"
+    },
+    {
+      "vlanNo": "478",
+      "customerName": "CHARAN KUMAR(PEDDI CHENCHU)",
+      "landlineNo": "08643-258152",
+      "userId": "nc8643258152_sid@ftth.bsnl.in",
+      "notes": "",
+      "status": "active",
+      "updatedAt": "2026-07-15T05:08:46.661Z",
+      "id": "f3971584-e025-48e1-adf7-2ff79419b454",
+      "createdAt": "2026-07-15T05:08:46.661Z"
+    }
+  ],
+  "updatedAt": "2026-07-15T05:22:54.437Z"
+}
