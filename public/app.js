@@ -360,6 +360,66 @@ $('#connectionsBody').addEventListener('click', handleActionClick);
 $('#mobileCards').addEventListener('click', handleActionClick);
 
 /* ===========================
+   Voice Search
+   =========================== */
+const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
+
+if (SpeechRecognition) {
+  const recognition = new SpeechRecognition();
+  recognition.continuous = false;
+  recognition.interimResults = true;
+  recognition.lang = 'en-IN';
+
+  const voiceBtn = $('#voiceSearchBtn');
+  let isListening = false;
+
+  voiceBtn.addEventListener('click', () => {
+    if (isListening) {
+      recognition.stop();
+      return;
+    }
+    recognition.start();
+  });
+
+  recognition.addEventListener('start', () => {
+    isListening = true;
+    voiceBtn.classList.add('listening');
+    voiceBtn.title = 'Listening… tap to stop';
+    $('#searchInput').placeholder = '🎤 Listening…';
+  });
+
+  recognition.addEventListener('result', (event) => {
+    let transcript = '';
+    for (let i = event.resultIndex; i < event.results.length; i++) {
+      transcript += event.results[i][0].transcript;
+    }
+    $('#searchInput').value = transcript;
+    render();
+  });
+
+  recognition.addEventListener('end', () => {
+    isListening = false;
+    voiceBtn.classList.remove('listening');
+    voiceBtn.title = 'Search by voice';
+    $('#searchInput').placeholder = 'VLAN number, name, landline or user ID…';
+  });
+
+  recognition.addEventListener('error', (event) => {
+    isListening = false;
+    voiceBtn.classList.remove('listening');
+    voiceBtn.title = 'Search by voice';
+    $('#searchInput').placeholder = 'VLAN number, name, landline or user ID…';
+    if (event.error === 'not-allowed') {
+      showToast('Microphone access denied. Please allow it in browser settings.', true);
+    }
+  });
+} else {
+  // Hide mic button if browser doesn't support Speech API
+  const voiceBtn = $('#voiceSearchBtn');
+  if (voiceBtn) voiceBtn.style.display = 'none';
+}
+
+/* ===========================
    Initialize
    =========================== */
 loadConnections();
