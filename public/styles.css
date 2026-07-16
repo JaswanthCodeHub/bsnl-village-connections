@@ -1,26 +1,14 @@
 /* ===========================
-   CSS Custom Properties
+   BSNL Fiber Manager — Dashboard Styles
+   Production-ready CSS
    =========================== */
-:root {
-  --navy: #082f68;
-  --blue: #0c61b9;
-  --blue-soft: #eaf4ff;
-  --ink: #172235;
-  --muted: #687386;
-  --line: #e4e9f0;
-  --paper: #fff;
-  --canvas: #f4f7fb;
-  --green: #157f52;
-  --orange: #b86508;
-  --red: #b23b43;
-  --shadow: 0 12px 35px rgba(17, 48, 91, 0.08);
-  --radius: 14px;
-}
 
 /* ===========================
    Reset & Base
    =========================== */
-* {
+*,
+*::before,
+*::after {
   box-sizing: border-box;
   margin: 0;
   padding: 0;
@@ -28,13 +16,16 @@
 
 body {
   margin: 0;
-  color: var(--ink);
-  background: var(--canvas);
-  font-family: "Plus Jakarta Sans", "Noto Sans Telugu", sans-serif;
+  color: #334155;
+  background: linear-gradient(180deg, #f0f4ff 0%, #f5f3ff 40%, #ffffff 100%);
+  background-attachment: fixed;
+  font-family: 'Inter', 'Noto Sans Telugu', sans-serif;
   font-size: 14px;
   line-height: 1.5;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  min-height: 100vh;
+  overflow-x: hidden;
 }
 
 button,
@@ -64,16 +55,15 @@ button {
   position: sticky;
   top: 0;
   z-index: 10;
-  min-height: 72px;
+  min-height: 64px;
   padding: 0 max(24px, calc((100vw - 1280px) / 2));
   display: flex;
   align-items: center;
   justify-content: space-between;
   gap: 16px;
-  background: var(--paper);
-  border-bottom: 1px solid var(--line);
-  backdrop-filter: blur(12px);
-  background: rgba(255, 255, 255, 0.95);
+  background: #ffffff;
+  border-bottom: 1px solid #e8ecf2;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04);
 }
 
 /* ===========================
@@ -88,29 +78,30 @@ button {
 .brand-mark {
   display: grid;
   place-items: center;
-  width: 40px;
-  height: 40px;
-  border-radius: 12px;
+  width: 38px;
+  height: 38px;
+  border-radius: 10px;
   color: #fff;
-  font-size: 20px;
+  font-size: 18px;
   font-weight: 800;
-  background: linear-gradient(145deg, #0789df, #073d83);
-  box-shadow: 0 4px 12px rgba(11, 96, 182, 0.25);
+  background: #3b82f6;
+  box-shadow: 0 2px 8px rgba(59, 130, 246, 0.25);
   flex-shrink: 0;
 }
 
 .brand h1 {
   margin: 0;
-  color: var(--navy);
-  font-size: 16px;
-  font-weight: 800;
+  color: #0f172a;
+  font-family: 'Inter', sans-serif;
+  font-size: 15px;
+  font-weight: 700;
   line-height: 1.3;
 }
 
 .brand p {
   margin: 2px 0 0;
-  color: var(--muted);
-  font-family: "Noto Sans Telugu", sans-serif;
+  color: #94a3b8;
+  font-family: 'Noto Sans Telugu', sans-serif;
   font-size: 11px;
   line-height: 1.3;
 }
@@ -136,9 +127,10 @@ main {
 
 .eyebrow {
   margin: 0 0 6px;
-  color: var(--blue);
+  color: #3b82f6;
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -146,25 +138,27 @@ main {
 .intro h2 {
   max-width: 620px;
   margin: 0;
-  color: var(--navy);
-  font-family: "Noto Sans Telugu", sans-serif;
-  font-size: 28px;
+  color: #0f172a;
+  font-family: 'DM Serif Display', serif;
+  font-size: 30px;
+  font-weight: 400;
   line-height: 1.25;
 }
 
 .intro > div > p:not(.eyebrow) {
   margin: 8px 0 0;
-  color: var(--muted);
-  font-family: "Noto Sans Telugu", sans-serif;
-  font-size: 13px;
+  color: #64748b;
+  font-family: 'Inter', sans-serif;
+  font-size: 14px;
 }
 
+/* Legacy element — keep for compat */
 .updated {
   min-width: 220px;
   padding: 12px 14px;
-  color: var(--muted);
-  background: #fff;
-  border: 1px solid var(--line);
+  color: #64748b;
+  background: #ffffff;
+  border: 1px solid #e2e8f0;
   border-radius: 10px;
   font-size: 11px;
 }
@@ -172,12 +166,12 @@ main {
 .updated strong {
   display: block;
   margin-top: 4px;
-  color: var(--ink);
+  color: #0f172a;
   font-weight: 700;
 }
 
 /* ===========================
-   Stats Grid
+   Stats Grid (legacy support)
    =========================== */
 .stats {
   display: grid;
@@ -189,24 +183,29 @@ main {
 .stats article {
   min-height: 110px;
   padding: 20px;
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: 0 2px 5px rgba(23, 34, 53, 0.02);
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
+  transition: transform 0.2s ease, box-shadow 0.2s ease;
+}
+
+.stats article:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.08), 0 8px 30px rgba(0, 0, 0, 0.06);
 }
 
 .stat-label {
   display: block;
   min-height: 27px;
-  color: var(--muted);
-  font-family: "Noto Sans Telugu", sans-serif;
+  color: #94a3b8;
+  font-family: 'Noto Sans Telugu', sans-serif;
   font-size: 12px;
 }
 
 .stats strong {
   display: block;
   margin-top: 8px;
-  color: var(--navy);
+  color: #0f172a;
   font-size: 30px;
   font-weight: 800;
 }
@@ -216,18 +215,17 @@ main {
    =========================== */
 .actions-card,
 .table-card {
-  background: var(--paper);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  box-shadow: var(--shadow);
+  background: #ffffff;
+  border-radius: 16px;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.04), 0 4px 16px rgba(0, 0, 0, 0.04);
 }
 
 .actions-card {
   display: grid;
   grid-template-columns: 1fr auto auto;
   align-items: end;
-  gap: 14px;
-  padding: 18px 20px;
+  gap: 16px;
+  padding: 20px 24px;
 }
 
 .search-wrap,
@@ -251,37 +249,40 @@ main {
   min-width: 0;
 }
 
+/* ===========================
+   Voice Button
+   =========================== */
 .voice-btn {
   display: flex;
   align-items: center;
   justify-content: center;
-  width: 40px;
-  height: 40px;
-  border: 1px solid #d6dfe9;
-  border-radius: 10px;
-  background: var(--paper);
-  color: var(--muted);
+  width: 42px;
+  height: 42px;
+  border: 1px solid #e2e8f0;
+  border-radius: 50%;
+  background: #ffffff;
+  color: #94a3b8;
   cursor: pointer;
   transition: all 0.2s ease;
   flex-shrink: 0;
 }
 
 .voice-btn:hover {
-  background: var(--blue-soft);
-  color: var(--blue);
-  border-color: var(--blue);
+  background: #eff6ff;
+  color: #3b82f6;
+  border-color: #3b82f6;
 }
 
 .voice-btn.listening {
-  background: var(--red);
+  background: #ef4444;
   color: #fff;
-  border-color: var(--red);
+  border-color: #ef4444;
   animation: pulse-mic 1.2s ease-in-out infinite;
 }
 
 @keyframes pulse-mic {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(178, 59, 67, 0.4); }
-  50% { box-shadow: 0 0 0 10px rgba(178, 59, 67, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(239, 68, 68, 0.4); }
+  50% { box-shadow: 0 0 0 10px rgba(239, 68, 68, 0); }
 }
 
 .filter-wrap {
@@ -292,9 +293,10 @@ main {
 .actions-card .filter-wrap > label {
   display: block;
   margin: 0 0 6px;
-  color: var(--muted);
+  color: #94a3b8;
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.05em;
   text-transform: uppercase;
 }
@@ -302,40 +304,47 @@ main {
 .actions-card input[type="search"],
 .actions-card select {
   width: 100%;
-  height: 40px;
+  height: 42px;
 }
 
 /* ===========================
-   Form Controls
+   Form Controls (Global)
    =========================== */
 input,
 select,
 textarea {
-  border: 1px solid #d6dfe9;
-  border-radius: 8px;
+  border: 1px solid #e2e8f0;
+  border-radius: 22px;
   outline: none;
-  color: var(--ink);
-  background: #fff;
+  color: #334155;
+  background: #ffffff;
+  font-size: 13px;
   transition: border-color 0.15s, box-shadow 0.15s;
 }
 
 input,
 select {
-  height: 40px;
-  padding: 0 12px;
+  height: 42px;
+  padding: 0 16px;
 }
 
 textarea {
   width: 100%;
-  padding: 10px 12px;
+  padding: 10px 16px;
   resize: vertical;
+  border-radius: 14px;
 }
 
 input:focus,
 select:focus,
 textarea:focus {
-  border-color: #1772cc;
-  box-shadow: 0 0 0 3px rgba(21, 119, 213, 0.1);
+  border-color: #3b82f6;
+  box-shadow: 0 0 0 3px rgba(59, 130, 246, 0.1);
+}
+
+/* Search input clear button (WebKit) */
+input[type="search"]::-webkit-search-cancel-button {
+  -webkit-appearance: none;
 }
 
 .toolbar {
@@ -343,7 +352,7 @@ textarea:focus {
   align-items: center;
   gap: 10px;
   white-space: nowrap;
-  height: 40px;
+  height: 42px;
 }
 
 /* ===========================
@@ -359,8 +368,9 @@ textarea:focus {
   border: 1px solid transparent;
   border-radius: 8px;
   text-decoration: none;
-  font-size: 12px;
-  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  font-size: 13px;
+  font-weight: 600;
   white-space: nowrap;
   transition: transform 0.15s, background 0.15s, box-shadow 0.15s;
 }
@@ -375,13 +385,13 @@ textarea:focus {
 
 .button.primary {
   color: #fff;
-  background: var(--blue);
-  box-shadow: 0 3px 9px rgba(12, 97, 185, 0.16);
+  background: #3b82f6;
+  box-shadow: 0 1px 2px rgba(0, 0, 0, 0.05);
 }
 
 .button.primary:hover {
-  background: #084f9e;
-  box-shadow: 0 5px 14px rgba(12, 97, 185, 0.22);
+  background: #2563eb;
+  box-shadow: 0 2px 6px rgba(37, 99, 235, 0.2);
 }
 
 .button.primary span {
@@ -391,24 +401,26 @@ textarea:focus {
 }
 
 .button.secondary {
-  color: var(--navy);
+  color: #334155;
   background: #fff;
-  border-color: #ccd8e6;
+  border-color: #e2e8f0;
 }
 
 .button.secondary:hover {
-  background: #f2f7fd;
+  background: #f8fafc;
 }
 
 .text-button {
   padding: 4px 8px;
-  color: var(--blue);
+  color: #3b82f6;
   border: 0;
   background: transparent;
-  font-size: 11px;
-  font-weight: 700;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
   text-decoration: none;
   white-space: nowrap;
+  cursor: pointer;
 }
 
 .text-button:hover {
@@ -416,7 +428,14 @@ textarea:focus {
 }
 
 /* ===========================
-   Table
+   Replace Control
+   =========================== */
+.replace-control {
+  display: contents;
+}
+
+/* ===========================
+   Table Card
    =========================== */
 .table-card {
   margin-top: 16px;
@@ -428,20 +447,21 @@ textarea:focus {
   align-items: center;
   justify-content: space-between;
   gap: 12px;
-  padding: 18px 20px 14px;
+  padding: 20px 24px 16px;
 }
 
 .table-heading h3 {
   margin: 0;
-  color: var(--navy);
-  font-family: "Noto Sans Telugu", sans-serif;
-  font-size: 16px;
+  color: #0f172a;
+  font-family: 'Inter', sans-serif;
+  font-size: 17px;
+  font-weight: 700;
 }
 
 .table-heading p {
   margin: 2px 0 0;
-  color: var(--muted);
-  font-size: 11px;
+  color: #94a3b8;
+  font-size: 12px;
 }
 
 .table-scroll {
@@ -456,22 +476,23 @@ table {
 }
 
 th {
-  padding: 10px 20px;
-  color: #718096;
+  padding: 10px 24px;
+  color: #94a3b8;
   background: #f8fafc;
-  border-top: 1px solid var(--line);
-  border-bottom: 1px solid var(--line);
+  border-top: 1px solid #f1f5f9;
+  border-bottom: 1px solid #f1f5f9;
   text-align: left;
+  font-family: 'Inter', sans-serif;
   font-size: 10px;
-  font-weight: 700;
+  font-weight: 600;
   letter-spacing: 0.06em;
   text-transform: uppercase;
   white-space: nowrap;
 }
 
 td {
-  padding: 13px 20px;
-  border-bottom: 1px solid #edf1f5;
+  padding: 14px 24px;
+  border-bottom: 1px solid #f1f5f9;
   vertical-align: middle;
   font-size: 13px;
 }
@@ -481,7 +502,7 @@ tbody tr {
 }
 
 tbody tr:hover {
-  background: #f8fbff;
+  background: #f8fafc;
 }
 
 tbody tr:last-child td {
@@ -493,70 +514,87 @@ tbody tr:last-child td {
    =========================== */
 .customer-name {
   display: block;
-  font-weight: 700;
+  font-weight: 600;
   font-size: 13px;
+  color: #0f172a;
 }
 
 .subtext {
   display: block;
   margin-top: 3px;
-  color: var(--muted);
+  color: #94a3b8;
   font-size: 11px;
 }
 
+/* ===========================
+   Status Badges
+   =========================== */
 .status {
   display: inline-flex;
-  padding: 4px 10px;
+  align-items: center;
+  padding: 3px 10px;
   border-radius: 999px;
   font-size: 10px;
-  font-weight: 800;
+  font-weight: 700;
   text-transform: capitalize;
 }
 
 .status.active {
-  color: var(--green);
-  background: #e8f7ef;
+  color: #059669;
+  background: #ecfdf5;
 }
 
 .status.pending {
-  color: var(--orange);
-  background: #fff3e3;
+  color: #d97706;
+  background: #fffbeb;
 }
 
 .status.inactive,
 .status.disconnected {
-  color: var(--red);
-  background: #ffebed;
+  color: #ef4444;
+  background: #fef2f2;
 }
 
+/* ===========================
+   Row Actions
+   =========================== */
 .row-actions {
   display: flex;
   justify-content: flex-end;
   align-items: center;
-  gap: 6px;
+  gap: 4px;
 }
 
 .action {
-  color: var(--blue);
+  color: #3b82f6;
   border: 0;
   background: none;
+  font-family: 'Inter', sans-serif;
   font-size: 11px;
-  font-weight: 700;
-  padding: 4px 6px;
-  border-radius: 4px;
+  font-weight: 600;
+  padding: 5px 8px;
+  border-radius: 6px;
+  cursor: pointer;
   transition: background 0.12s;
 }
 
 .action:hover {
-  background: var(--blue-soft);
+  background: #eff6ff;
 }
 
 .action.delete {
-  color: var(--red);
+  color: #ef4444;
 }
 
 .action.delete:hover {
-  background: #ffebed;
+  background: #fef2f2;
+}
+
+/* ===========================
+   Name column min-width
+   =========================== */
+.name-column {
+  min-width: 180px;
 }
 
 /* ===========================
@@ -575,23 +613,24 @@ tbody tr:last-child td {
   width: 52px;
   height: 52px;
   margin: 0 auto 16px;
-  color: var(--blue);
-  background: var(--blue-soft);
+  color: #3b82f6;
+  background: #eff6ff;
   border-radius: 16px;
   font-size: 26px;
 }
 
 .empty-state h3 {
   margin: 0;
-  color: var(--navy);
-  font-family: "Noto Sans Telugu", sans-serif;
+  color: #0f172a;
+  font-family: 'Inter', sans-serif;
   font-size: 17px;
+  font-weight: 700;
 }
 
 .empty-state p {
   margin: 10px 0 20px;
-  color: var(--muted);
-  font-family: "Noto Sans Telugu", sans-serif;
+  color: #64748b;
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   line-height: 1.6;
 }
@@ -600,15 +639,16 @@ tbody tr:last-child td {
    Modal / Dialog
    =========================== */
 dialog {
-  color: var(--ink);
+  color: #334155;
   border: 0;
   background: transparent;
 }
 
 .modal::backdrop,
 .small-modal::backdrop {
-  background: rgba(6, 27, 57, 0.65);
-  backdrop-filter: blur(4px);
+  background: rgba(15, 23, 42, 0.4);
+  backdrop-filter: blur(8px);
+  -webkit-backdrop-filter: blur(8px);
 }
 
 .modal {
@@ -617,11 +657,12 @@ dialog {
   padding: 0;
   overflow: auto;
   border-radius: 16px;
-  box-shadow: 0 25px 80px rgba(3, 26, 58, 0.35);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
+  background: #ffffff;
 }
 
 .modal form {
-  background: #fff;
+  background: #ffffff;
 }
 
 .modal-header {
@@ -629,15 +670,16 @@ dialog {
   align-items: flex-start;
   justify-content: space-between;
   gap: 16px;
-  padding: 22px 24px 18px;
-  border-bottom: 1px solid var(--line);
+  padding: 24px;
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .modal-header h2 {
   margin: 0;
-  color: var(--navy);
-  font-family: "Noto Sans Telugu", sans-serif;
+  color: #0f172a;
+  font-family: 'Inter', sans-serif;
   font-size: 20px;
+  font-weight: 700;
 }
 
 .icon-button {
@@ -646,9 +688,9 @@ dialog {
   width: 32px;
   height: 32px;
   padding: 0;
-  color: #637184;
+  color: #64748b;
   border: 0;
-  background: #f1f4f8;
+  background: #f1f5f9;
   border-radius: 8px;
   font-size: 22px;
   line-height: 1;
@@ -657,7 +699,7 @@ dialog {
 }
 
 .icon-button:hover {
-  background: #e4e9f0;
+  background: #e2e8f0;
 }
 
 .form-grid {
@@ -670,17 +712,28 @@ dialog {
 .form-grid label {
   display: grid;
   gap: 6px;
-  color: #39465a;
-  font-size: 11px;
-  font-weight: 700;
+  color: #475569;
+  font-family: 'Inter', sans-serif;
+  font-size: 12px;
+  font-weight: 600;
 }
 
 .form-grid label span {
-  color: #d12c3c;
+  color: #ef4444;
 }
 
 .form-grid .full {
   grid-column: 1 / -1;
+}
+
+/* Form controls inside modal — override border-radius to 10px */
+.form-grid input,
+.form-grid select {
+  border-radius: 10px;
+}
+
+.form-grid textarea {
+  border-radius: 10px;
 }
 
 .modal-footer {
@@ -688,8 +741,8 @@ dialog {
   justify-content: flex-end;
   gap: 10px;
   padding: 16px 24px;
-  border-top: 1px solid var(--line);
-  background: #fafcff;
+  border-top: 1px solid #f1f5f9;
+  background: #fafbfc;
   border-radius: 0 0 16px 16px;
 }
 
@@ -699,9 +752,9 @@ dialog {
 .small-modal {
   width: min(390px, calc(100vw - 28px));
   padding: 0;
-  border-radius: var(--radius);
+  border-radius: 16px;
   background: #fff;
-  box-shadow: 0 25px 80px rgba(3, 26, 58, 0.35);
+  box-shadow: 0 25px 60px rgba(0, 0, 0, 0.15);
 }
 
 .small-modal .modal-header {
@@ -711,8 +764,8 @@ dialog {
 .small-modal > p {
   margin: 0;
   padding: 0 24px 24px;
-  color: var(--muted);
-  font-family: "Noto Sans Telugu", sans-serif;
+  color: #64748b;
+  font-family: 'Inter', sans-serif;
   line-height: 1.6;
 }
 
@@ -727,9 +780,10 @@ dialog {
   max-width: min(390px, calc(100vw - 44px));
   padding: 14px 18px;
   color: #fff;
-  background: #1c2c43;
-  border-radius: 10px;
-  box-shadow: 0 10px 30px rgba(7, 20, 41, 0.3);
+  background: #0f172a;
+  border-radius: 12px;
+  box-shadow: 0 10px 30px rgba(15, 23, 42, 0.3);
+  font-family: 'Inter', sans-serif;
   font-size: 13px;
   font-weight: 500;
   opacity: 0;
@@ -740,11 +794,12 @@ dialog {
 
 .toast.visible {
   opacity: 1;
+  pointer-events: auto;
   transform: translateY(0);
 }
 
 .toast.error {
-  background: #a8323c;
+  background: #ef4444;
 }
 
 /* ===========================
@@ -759,25 +814,25 @@ dialog {
 .suffix-input input {
   min-width: 0;
   width: 100%;
-  border-radius: 8px 0 0 8px;
+  border-radius: 10px 0 0 10px;
 }
 
 .suffix-input span {
   display: flex;
   align-items: center;
   padding: 0 10px;
-  color: #4f6178;
-  background: #eef3f8;
-  border: 1px solid #d6dfe9;
+  color: #64748b;
+  background: #f8fafc;
+  border: 1px solid #e2e8f0;
   border-left: 0;
-  border-radius: 0 8px 8px 0;
+  border-radius: 0 10px 10px 0;
   font-size: 10px;
   font-weight: 600;
   white-space: nowrap;
 }
 
 /* ===========================
-   Mobile Card Layout (JS adds)
+   Mobile Card Layout
    =========================== */
 .mobile-cards {
   display: none;
@@ -785,7 +840,7 @@ dialog {
 
 .mobile-card {
   padding: 16px;
-  border-bottom: 1px solid var(--line);
+  border-bottom: 1px solid #f1f5f9;
 }
 
 .mobile-card:last-child {
@@ -803,7 +858,7 @@ dialog {
 .mobile-card-name {
   font-size: 14px;
   font-weight: 700;
-  color: var(--navy);
+  color: #0f172a;
   text-transform: uppercase;
   letter-spacing: 0.01em;
   line-height: 1.35;
@@ -816,8 +871,8 @@ dialog {
   padding: 3px 8px;
   font-size: 10px;
   font-weight: 700;
-  color: var(--blue);
-  background: var(--blue-soft);
+  color: #3b82f6;
+  background: #eff6ff;
   border-radius: 6px;
   letter-spacing: 0.02em;
 }
@@ -840,7 +895,7 @@ dialog {
   display: block;
   font-size: 9px;
   font-weight: 700;
-  color: var(--muted);
+  color: #94a3b8;
   text-transform: uppercase;
   letter-spacing: 0.06em;
   margin-bottom: 2px;
@@ -848,14 +903,14 @@ dialog {
 
 .mobile-card-value {
   font-size: 13px;
-  color: var(--ink);
+  color: #334155;
   word-break: break-all;
   line-height: 1.4;
 }
 
 .mobile-card-notes {
   font-size: 12px;
-  color: var(--muted);
+  color: #64748b;
   font-style: italic;
   line-height: 1.4;
 }
@@ -865,7 +920,7 @@ dialog {
   gap: 8px;
   margin-top: 14px;
   padding-top: 12px;
-  border-top: 1px solid #f0f3f7;
+  border-top: 1px solid #f1f5f9;
 }
 
 .mobile-card-actions .action {
@@ -874,7 +929,7 @@ dialog {
   align-items: center;
   justify-content: center;
   min-height: 38px;
-  border: 1px solid var(--line);
+  border: 1px solid #e2e8f0;
   border-radius: 8px;
   font-size: 12px;
   font-weight: 700;
@@ -883,15 +938,15 @@ dialog {
 }
 
 .mobile-card-actions .action:hover {
-  background: var(--blue-soft);
+  background: #eff6ff;
 }
 
 .mobile-card-actions .action.delete {
-  color: var(--red);
+  color: #ef4444;
 }
 
 .mobile-card-actions .action.delete:hover {
-  background: #ffebed;
+  background: #fef2f2;
 }
 
 /* ===========================
@@ -980,7 +1035,7 @@ dialog {
   }
 
   .intro h2 {
-    font-size: 20px;
+    font-size: 22px;
     line-height: 1.3;
   }
 
@@ -998,7 +1053,7 @@ dialog {
   .stats article {
     min-height: 80px;
     padding: 12px;
-    border-radius: 10px;
+    border-radius: 12px;
   }
 
   .stats strong {
@@ -1021,7 +1076,11 @@ dialog {
   .actions-card select {
     height: 46px;
     font-size: 15px;
-    border-radius: 10px;
+  }
+
+  .voice-btn {
+    width: 46px;
+    height: 46px;
   }
 
   .actions-card .search-wrap > label,
