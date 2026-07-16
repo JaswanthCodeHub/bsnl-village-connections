@@ -193,11 +193,68 @@ app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(ROOT, 'public')));
 
 /* ===========================
+   Authentication Helpers & Routes
+   =========================== */
+const SESSION_SECRET = process.env.SESSION_SECRET || 'bsnl-fiber-manager-secure-salt-2026';
+
+function generateToken(username) {
+  return crypto.createHmac('sha256', SESSION_SECRET).update(username).digest('hex');
+}
+
+function getCookie(req, name) {
+  if (!req.headers.cookie) return null;
+  const match = req.headers.cookie.match(new RegExp('(^| )' + name + '=([^;]+)'));
+  return match ? match[2] : null;
+}
+
+function requireAuth(req, res, next) {
+  const token = getCookie(req, 'session_token');
+  const expectedToken = generateToken(process.env.ADMIN_USERNAME || 'vemuri34@gmail.com');
+  if (token === expectedToken) {
+    return next();
+  }
+  res.status(401).json({ error: 'Unauthorized. Please login.' });
+}
+
+// POST login
+app.post('/api/login', (req, res) => {
+  const { username, password } = req.body;
+  const adminUser = process.env.ADMIN_USERNAME || 'vemuri34@gmail.com';
+  const adminPass = process.env.ADMIN_PASSWORD || '9030999657';
+
+  if (username === adminUser && password === adminPass) {
+    const token = generateToken(adminUser);
+    const isProd = process.env.NODE_ENV === 'production';
+    res.setHeader('Set-Cookie', `session_token=${token}; Path=/; HttpOnly; Max-Age=86400; SameSite=Strict${isProd ? '; Secure' : ''}`);
+    res.json({ success: true, username });
+  } else {
+    res.status(401).json({ error: 'Invalid email or password.' });
+  }
+});
+
+// POST logout
+app.post('/api/logout', (req, res) => {
+  res.setHeader('Set-Cookie', 'session_token=; Path=/; HttpOnly; Max-Age=0; SameSite=Strict');
+  res.json({ success: true });
+});
+
+// GET auth check
+app.get('/api/auth-check', (req, res) => {
+  const token = getCookie(req, 'session_token');
+  const expectedToken = generateToken(process.env.ADMIN_USERNAME || 'vemuri34@gmail.com');
+  if (token === expectedToken) {
+    res.json({ authenticated: true, username: process.env.ADMIN_USERNAME || 'vemuri34@gmail.com' });
+  } else {
+    res.json({ authenticated: false });
+  }
+});
+
+/* ===========================
    API Routes
    =========================== */
 
 // GET all connections
-app.get('/api/connections', async (_req, res, next) => {
+app.get('/api/connections', requireAuth, async (_req, res, next) => {
   try {
     const connectionsCollection = await getCollection();
     const connections = await connectionsCollection
@@ -212,7 +269,7 @@ app.get('/api/connections', async (_req, res, next) => {
 });
 
 // POST new connection
-app.post('/api/connections', async (req, res, next) => {
+app.post('/api/connections', requireAuth, async (req, res, next) => {
   try {
     const connectionsCollection = await getCollection();
     const connection = cleanConnection(req.body);
@@ -226,7 +283,7 @@ app.post('/api/connections', async (req, res, next) => {
 });
 
 // PUT update connection
-app.put('/api/connections/:id', async (req, res, next) => {
+app.put('/api/connections/:id', requireAuth, async (req, res, next) => {
   try {
     const connectionsCollection = await getCollection();
     const existing = await connectionsCollection.findOne({ id: req.params.id });
@@ -243,7 +300,7 @@ app.put('/api/connections/:id', async (req, res, next) => {
 });
 
 // DELETE connection
-app.delete('/api/connections/:id', async (req, res, next) => {
+app.delete('/api/connections/:id', requireAuth, async (req, res, next) => {
   try {
     const connectionsCollection = await getCollection();
     const result = await connectionsCollection.deleteOne({ id: req.params.id });
@@ -252,8 +309,8 @@ app.delete('/api/connections/:id', async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
-// POST import Excel/CSV
-app.post('/api/import', upload.single('file'), async (req, res, next) => {
+// POST import Excel / CSV
+app.post('/api/import', requireAuth, upload.single('file'), async (req, res, next) => {
   if (!req.file) return res.status(400).json({ error: 'Please select an Excel or CSV file.' });
   try {
     const connectionsCollection = await getCollection();
@@ -294,7 +351,7 @@ app.post('/api/import', upload.single('file'), async (req, res, next) => {
 });
 
 // GET export to Excel
-app.get('/api/export', async (req, res, next) => {
+app.get('/api/export', requireAuth, async (req, res, next) => {
   try {
     const connectionsCollection = await getCollection();
     const selectedArea = cleanText(req.query.area, 100);
@@ -317,7 +374,7 @@ app.get('/api/export', async (req, res, next) => {
 });
 
 // GET backup as JSON download
-app.get('/api/backup', async (_req, res, next) => {
+app.get('/api/backup', requireAuth, async (_req, res, next) => {
   try {
     const connectionsCollection = await getCollection();
     const connections = await connectionsCollection.find({}).toArray();
