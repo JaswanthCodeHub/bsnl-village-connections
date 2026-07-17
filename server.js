@@ -209,7 +209,7 @@ function getCookie(req, name) {
 
 function requireAuth(req, res, next) {
   const token = getCookie(req, 'session_token');
-  const expectedToken = generateToken(process.env.ADMIN_USERNAME || 'vemuri34@gmail.com');
+  const expectedToken = generateToken(process.env.ADMIN_USERNAME || 'sai krishna');
   if (token === expectedToken) {
     return next();
   }
@@ -219,7 +219,7 @@ function requireAuth(req, res, next) {
 // POST login
 app.post('/api/login', (req, res) => {
   const { username, password } = req.body;
-  const adminUser = process.env.ADMIN_USERNAME || 'vemuri34@gmail.com';
+  const adminUser = process.env.ADMIN_USERNAME || 'sai krishna';
   const adminPass = process.env.ADMIN_PASSWORD || '9030999657';
 
   if (username === adminUser && password === adminPass) {
@@ -228,7 +228,7 @@ app.post('/api/login', (req, res) => {
     res.setHeader('Set-Cookie', `session_token=${token}; Path=/; HttpOnly; Max-Age=86400; SameSite=Strict${isProd ? '; Secure' : ''}`);
     res.json({ success: true, username });
   } else {
-    res.status(401).json({ error: 'Invalid email or password.' });
+    res.status(401).json({ error: 'Invalid username or password.' });
   }
 });
 
@@ -241,9 +241,9 @@ app.post('/api/logout', (req, res) => {
 // GET auth check
 app.get('/api/auth-check', (req, res) => {
   const token = getCookie(req, 'session_token');
-  const expectedToken = generateToken(process.env.ADMIN_USERNAME || 'vemuri34@gmail.com');
+  const expectedToken = generateToken(process.env.ADMIN_USERNAME || 'sai krishna');
   if (token === expectedToken) {
-    res.json({ authenticated: true, username: process.env.ADMIN_USERNAME || 'vemuri34@gmail.com' });
+    res.json({ authenticated: true, username: process.env.ADMIN_USERNAME || 'sai krishna' });
   } else {
     res.json({ authenticated: false });
   }
