@@ -99,18 +99,7 @@ function normaliseUserId(value) {
   return `${prefix}${USER_ID_SUFFIX}`;
 }
 
-function areaFromFilename(filename) {
-  const value = filename.toLowerCase();
-  if (value.includes('parchur side')) return 'OLT to Parchur Side';
-  if (value.includes('sai temple to nagulapadu')) return 'PNP Sai Temple to Nagulapadu';
-  if (value.includes('olt to varagani')) return 'OLT to Varagani';
-  if (value.includes('bodaraya to kommuru')) return 'PNP Bodaraya to Kommuru';
-  if (value.includes('bankers')) return 'Bankers';
-  if (value.includes('garalapadu')) return 'Garalapadu';
-  if (value.includes('pedavaripalem')) return 'Pedavaripalem';
-  if (value.includes('kommuru')) return 'Kommuru';
-  return 'Imported file';
-}
+/* areaFromFilename() removed — area is now selected from UI dropdown */
 
 function validateConnection(connection) {
   if (!connection.area) return 'Please select a village.';
@@ -274,6 +263,14 @@ function requireAuth(req, res, next) {
 const loginAttempts = new Map();
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOGIN_LOCKOUT_MS = 60000;
+
+// Cleanup stale rate-limit entries every 5 minutes
+setInterval(() => {
+  const now = Date.now();
+  for (const [ip, record] of loginAttempts) {
+    if (now - record.first >= LOGIN_LOCKOUT_MS) loginAttempts.delete(ip);
+  }
+}, 300000);
 
 // POST login
 app.post('/api/login', (req, res) => {

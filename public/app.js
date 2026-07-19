@@ -36,13 +36,7 @@ const escapeHtml = (value = '') =>
 const display = (value, fallback = '—') =>
   value ? escapeHtml(value) : fallback;
 
-const dateDisplay = (value) =>
-  value
-    ? new Intl.DateTimeFormat('en-IN', {
-        dateStyle: 'medium',
-        timeStyle: 'short',
-      }).format(new Date(value))
-    : '—';
+/* dateDisplay() removed — not currently used */
 
 /* ===========================
    Toast Notification
