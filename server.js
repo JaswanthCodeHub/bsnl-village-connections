@@ -216,10 +216,14 @@ function verifyToken(token, username) {
   const ageMs = Date.now() - timestamp;
   if (ageMs > SESSION_MAX_AGE_SEC * 1000) return false;
 
-  // Check HMAC integrity
+  // Check HMAC integrity (timing-safe)
   const payload = `${username}:${timestamp}`;
   const expectedHmac = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
-  return hmac === expectedHmac;
+  try {
+    return crypto.timingSafeEqual(Buffer.from(hmac, 'hex'), Buffer.from(expectedHmac, 'hex'));
+  } catch {
+    return false;
+  }
 }
 
 function getCookie(req, name) {
@@ -237,18 +241,37 @@ function requireAuth(req, res, next) {
   res.status(401).json({ error: 'Session expired. Please login again.' });
 }
 
+// Rate limiting for login
+const loginAttempts = new Map();
+const MAX_LOGIN_ATTEMPTS = 5;
+const LOGIN_LOCKOUT_MS = 60000;
+
 // POST login
 app.post('/api/login', (req, res) => {
+  const ip = req.ip || req.socket?.remoteAddress || 'unknown';
+  const now = Date.now();
+  const record = loginAttempts.get(ip);
+  if (record && (now - record.first) < LOGIN_LOCKOUT_MS && record.count >= MAX_LOGIN_ATTEMPTS) {
+    return res.status(429).json({ error: 'Too many login attempts. Please wait 1 minute.' });
+  }
+
   const { username, password } = req.body;
   const adminUser = process.env.ADMIN_USERNAME || 'sai krishna';
   const adminPass = process.env.ADMIN_PASSWORD || '9030999657';
 
   if (username === adminUser && password === adminPass) {
+    loginAttempts.delete(ip);
     const token = generateToken(adminUser);
     const isProd = process.env.NODE_ENV === 'production';
     res.setHeader('Set-Cookie', `session_token=${token}; Path=/; HttpOnly; Max-Age=${SESSION_MAX_AGE_SEC}; SameSite=Strict${isProd ? '; Secure' : ''}`);
     res.json({ success: true, username, sessionMaxAge: SESSION_MAX_AGE_SEC });
   } else {
+    // Track failed attempt
+    if (!record || (now - record.first) >= LOGIN_LOCKOUT_MS) {
+      loginAttempts.set(ip, { first: now, count: 1 });
+    } else {
+      record.count++;
+    }
     res.status(401).json({ error: 'Invalid username or password.' });
   }
 });
@@ -368,7 +391,7 @@ app.post('/api/import', requireAuth, upload.single('file'), async (req, res, nex
 
     res.json({ added: importedConnections.length, skipped, replaced, totalRows: rows.length, area: selectedArea });
   } catch (error) { next(error); }
-  finally { fsp.unlink(req.file.path).catch(() => {}); }
+  finally { if (req.file?.path) fsp.unlink(req.file.path).catch(() => {}); }
 });
 
 // GET export to Excel

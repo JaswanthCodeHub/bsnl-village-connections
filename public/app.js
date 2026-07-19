@@ -4,7 +4,9 @@
 const originalFetch = window.fetch;
 window.fetch = async (...args) => {
   const response = await originalFetch(...args);
-  if (response.status === 401 && !args[0].includes('/api/login') && !args[0].includes('/api/auth-check')) {
+  const url = typeof args[0] === 'string' ? args[0] : args[0]?.url || '';
+  if (response.status === 401 && !url.includes('/api/login') && !url.includes('/api/auth-check')) {
+    clearSessionTimer();
     showLoginView();
   }
   return response;
@@ -332,7 +334,11 @@ async function importFile(file) {
 $('#addButton').addEventListener('click', () => openForm());
 $('#emptyAddButton').addEventListener('click', () => openForm());
 $('#saveButton').addEventListener('click', saveConnection);
-$('#searchInput').addEventListener('input', render);
+let searchDebounce;
+$('#searchInput').addEventListener('input', () => {
+  clearTimeout(searchDebounce);
+  searchDebounce = setTimeout(render, 150);
+});
 $('#areaFilter').addEventListener('change', render);
 
 $('#clearFilters').addEventListener('click', () => {
@@ -445,20 +451,7 @@ function showDashboardView() {
   $('#appShell').style.display = 'block';
 }
 
-async function checkAuth() {
-  try {
-    const response = await fetch('/api/auth-check');
-    const data = await response.json();
-    if (data.authenticated) {
-      showDashboardView();
-      await loadConnections();
-    } else {
-      showLoginView();
-    }
-  } catch (err) {
-    showLoginView();
-  }
-}
+/* checkAuth() removed — init() handles this */
 
 async function handleLogin(event) {
   event.preventDefault();
@@ -526,7 +519,7 @@ function startSessionTimer(maxAgeSec) {
   sessionTimerId = setTimeout(() => {
     clearSessionTimer();
     showToast('Session expired. Please login again.', true);
-    handleLogout();
+    showLoginView();
   }, expiryMs);
 }
 
@@ -577,24 +570,27 @@ function hideSessionWarning() {
 
 async function extendSession() {
   try {
-    const response = await fetch('/api/auth-check');
-    const data = await response.json();
-    if (data.authenticated) {
-      // Re-login silently by calling auth-check; the real extension
-      // needs a re-login. For now, just restart the timer.
-      const username = $('#loginUsername').value.trim() || 'sai krishna';
-      const password = $('#loginPassword').value || '9030999657';
-      const loginRes = await fetch('/api/login', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ username, password })
-      });
-      const loginData = await loginRes.json();
-      if (loginRes.ok) {
-        clearSessionTimer();
-        startSessionTimer(loginData.sessionMaxAge || 1800);
-        showToast('Session extended.');
-      }
+    const username = $('#loginUsername').value.trim();
+    const password = $('#loginPassword').value;
+    if (!username || !password) {
+      showToast('Session expired. Please login again.', true);
+      clearSessionTimer();
+      showLoginView();
+      return;
+    }
+    const loginRes = await fetch('/api/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const loginData = await loginRes.json();
+    if (loginRes.ok) {
+      clearSessionTimer();
+      startSessionTimer(loginData.sessionMaxAge || 1800);
+      showToast('Session extended.');
+    } else {
+      showToast('Session expired. Please login again.', true);
+      showLoginView();
     }
   } catch {
     showToast('Could not extend session.', true);
