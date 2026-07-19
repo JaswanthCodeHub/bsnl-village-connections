@@ -75,7 +75,7 @@
               <div class="input-wrapper">
                 <svg class="input-icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
                 <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password" />
-                <button type="button" class="eye-toggle" aria-label="Toggle password visibility">
+                <button type="button" class="eye-toggle" aria-label="Toggle password visibility" aria-pressed="false">
                   <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
                 </button>
               </div>
@@ -232,7 +232,7 @@
     </div>
 
     <!-- ===== Add / Edit Customer Dialog ===== -->
-    <dialog id="connectionDialog" class="modal">
+    <dialog id="connectionDialog" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
       <form id="connectionForm" method="dialog" autocomplete="off" novalidate>
 
         <div class="modal-header">

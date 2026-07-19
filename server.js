@@ -51,10 +51,12 @@ let db = null;
 let connectionsCollection = null;
 
 async function getCollection() {
-  if (connectionsCollection) {
+  if (connectionsCollection && client?.topology?.s?.state === 'connected') {
     return connectionsCollection;
   }
-  client = new MongoClient(MONGODB_URI);
+  // Close stale client if exists
+  if (client) { try { await client.close(); } catch {} }
+  client = new MongoClient(MONGODB_URI, { maxPoolSize: 5 });
   await client.connect();
   db = client.db(DB_NAME);
   connectionsCollection = db.collection(COLLECTION_NAME);
@@ -63,6 +65,8 @@ async function getCollection() {
   await connectionsCollection.createIndex({ id: 1 }, { unique: true }).catch(() => {});
   // Create index on 'area' field for fast area-based queries
   await connectionsCollection.createIndex({ area: 1 }).catch(() => {});
+  // Create text index for full-text search
+  await connectionsCollection.createIndex({ customerName: 'text', landlineNo: 'text', userId: 'text' }).catch(() => {});
 
   console.log('Connected to MongoDB successfully.');
   return connectionsCollection;
@@ -191,6 +195,16 @@ const upload = multer({
    =========================== */
 app.use(express.json({ limit: '1mb' }));
 app.use(express.static(path.join(ROOT, 'public')));
+
+// Security headers
+app.use((_req, res, next) => {
+  res.setHeader('X-Frame-Options', 'DENY');
+  res.setHeader('X-Content-Type-Options', 'nosniff');
+  res.setHeader('Referrer-Policy', 'strict-origin-when-cross-origin');
+  res.setHeader('X-XSS-Protection', '1; mode=block');
+  res.setHeader('Permissions-Policy', 'camera=(), microphone=(self), geolocation=()');
+  next();
+});
 
 /* ===========================
    Authentication Helpers & Routes
