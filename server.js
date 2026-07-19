@@ -196,9 +196,30 @@ app.use(express.static(path.join(ROOT, 'public')));
    Authentication Helpers & Routes
    =========================== */
 const SESSION_SECRET = process.env.SESSION_SECRET || 'bsnl-fiber-manager-secure-salt-2026';
+const SESSION_MAX_AGE_SEC = parseInt(process.env.SESSION_MAX_AGE_SEC, 10) || 1800; // 30 minutes
 
 function generateToken(username) {
-  return crypto.createHmac('sha256', SESSION_SECRET).update(username).digest('hex');
+  const timestamp = Date.now();
+  const payload = `${username}:${timestamp}`;
+  const hmac = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+  // Token format: hmac.timestamp
+  return `${hmac}.${timestamp}`;
+}
+
+function verifyToken(token, username) {
+  if (!token || !token.includes('.')) return false;
+  const [hmac, timestampStr] = token.split('.');
+  const timestamp = parseInt(timestampStr, 10);
+  if (isNaN(timestamp)) return false;
+
+  // Check expiry
+  const ageMs = Date.now() - timestamp;
+  if (ageMs > SESSION_MAX_AGE_SEC * 1000) return false;
+
+  // Check HMAC integrity
+  const payload = `${username}:${timestamp}`;
+  const expectedHmac = crypto.createHmac('sha256', SESSION_SECRET).update(payload).digest('hex');
+  return hmac === expectedHmac;
 }
 
 function getCookie(req, name) {
@@ -209,11 +230,11 @@ function getCookie(req, name) {
 
 function requireAuth(req, res, next) {
   const token = getCookie(req, 'session_token');
-  const expectedToken = generateToken(process.env.ADMIN_USERNAME || 'sai krishna');
-  if (token === expectedToken) {
+  const adminUser = process.env.ADMIN_USERNAME || 'sai krishna';
+  if (verifyToken(token, adminUser)) {
     return next();
   }
-  res.status(401).json({ error: 'Unauthorized. Please login.' });
+  res.status(401).json({ error: 'Session expired. Please login again.' });
 }
 
 // POST login
@@ -225,8 +246,8 @@ app.post('/api/login', (req, res) => {
   if (username === adminUser && password === adminPass) {
     const token = generateToken(adminUser);
     const isProd = process.env.NODE_ENV === 'production';
-    res.setHeader('Set-Cookie', `session_token=${token}; Path=/; HttpOnly; Max-Age=86400; SameSite=Strict${isProd ? '; Secure' : ''}`);
-    res.json({ success: true, username });
+    res.setHeader('Set-Cookie', `session_token=${token}; Path=/; HttpOnly; Max-Age=${SESSION_MAX_AGE_SEC}; SameSite=Strict${isProd ? '; Secure' : ''}`);
+    res.json({ success: true, username, sessionMaxAge: SESSION_MAX_AGE_SEC });
   } else {
     res.status(401).json({ error: 'Invalid username or password.' });
   }
@@ -241,9 +262,9 @@ app.post('/api/logout', (req, res) => {
 // GET auth check
 app.get('/api/auth-check', (req, res) => {
   const token = getCookie(req, 'session_token');
-  const expectedToken = generateToken(process.env.ADMIN_USERNAME || 'sai krishna');
-  if (token === expectedToken) {
-    res.json({ authenticated: true, username: process.env.ADMIN_USERNAME || 'sai krishna' });
+  const adminUser = process.env.ADMIN_USERNAME || 'sai krishna';
+  if (verifyToken(token, adminUser)) {
+    res.json({ authenticated: true, username: adminUser, sessionMaxAge: SESSION_MAX_AGE_SEC });
   } else {
     res.json({ authenticated: false });
   }

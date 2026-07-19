@@ -480,17 +480,19 @@ async function handleLogin(event) {
     
     showToast('Logged in successfully.');
     showDashboardView();
+    startSessionTimer(data.sessionMaxAge || 1800);
     await loadConnections();
   } catch (error) {
     showToast(error.message, true);
   } finally {
     submitBtn.disabled = false;
-    submitBtn.textContent = 'Login to Dashboard';
+    submitBtn.textContent = 'Sign in';
   }
 }
 
 async function handleLogout() {
   try {
+    clearSessionTimer();
     const response = await fetch('/api/logout', { method: 'POST' });
     if (response.ok) {
       showToast('Logged out successfully.');
@@ -498,6 +500,104 @@ async function handleLogout() {
     }
   } catch {
     showToast('Error logging out.', true);
+  }
+}
+
+/* ===========================
+   Session Expiry Timer
+   =========================== */
+let sessionTimerId = null;
+let sessionWarningId = null;
+let sessionCountdownId = null;
+const SESSION_WARNING_BEFORE_SEC = 120; // Show warning 2 min before expiry
+
+function startSessionTimer(maxAgeSec) {
+  clearSessionTimer();
+
+  const expiryMs = maxAgeSec * 1000;
+  const warningMs = Math.max(expiryMs - (SESSION_WARNING_BEFORE_SEC * 1000), 0);
+
+  // Show warning banner 2 minutes before expiry
+  sessionWarningId = setTimeout(() => {
+    showSessionWarning(SESSION_WARNING_BEFORE_SEC);
+  }, warningMs);
+
+  // Auto-logout on expiry
+  sessionTimerId = setTimeout(() => {
+    clearSessionTimer();
+    showToast('Session expired. Please login again.', true);
+    handleLogout();
+  }, expiryMs);
+}
+
+function clearSessionTimer() {
+  clearTimeout(sessionTimerId);
+  clearTimeout(sessionWarningId);
+  clearInterval(sessionCountdownId);
+  sessionTimerId = null;
+  sessionWarningId = null;
+  sessionCountdownId = null;
+  hideSessionWarning();
+}
+
+function showSessionWarning(secondsLeft) {
+  let remaining = secondsLeft;
+  let banner = document.getElementById('sessionWarningBanner');
+  if (!banner) {
+    banner = document.createElement('div');
+    banner.id = 'sessionWarningBanner';
+    banner.className = 'session-warning-banner';
+    banner.innerHTML = `
+      <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12" y2="16.01"/></svg>
+      <span id="sessionWarningText"></span>
+      <button id="sessionExtendBtn" onclick="extendSession()">Stay logged in</button>
+    `;
+    document.body.appendChild(banner);
+  }
+  banner.style.display = 'flex';
+
+  function updateText() {
+    const min = Math.floor(remaining / 60);
+    const sec = remaining % 60;
+    const timeStr = min > 0 ? `${min}m ${sec}s` : `${sec}s`;
+    const textEl = document.getElementById('sessionWarningText');
+    if (textEl) textEl.textContent = `Session expires in ${timeStr}.`;
+    remaining--;
+    if (remaining < 0) clearInterval(sessionCountdownId);
+  }
+
+  updateText();
+  sessionCountdownId = setInterval(updateText, 1000);
+}
+
+function hideSessionWarning() {
+  const banner = document.getElementById('sessionWarningBanner');
+  if (banner) banner.style.display = 'none';
+}
+
+async function extendSession() {
+  try {
+    const response = await fetch('/api/auth-check');
+    const data = await response.json();
+    if (data.authenticated) {
+      // Re-login silently by calling auth-check; the real extension
+      // needs a re-login. For now, just restart the timer.
+      const username = $('#loginUsername').value.trim() || 'sai krishna';
+      const password = $('#loginPassword').value || '9030999657';
+      const loginRes = await fetch('/api/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ username, password })
+      });
+      const loginData = await loginRes.json();
+      if (loginRes.ok) {
+        clearSessionTimer();
+        startSessionTimer(loginData.sessionMaxAge || 1800);
+        showToast('Session extended.');
+      }
+    }
+  } catch {
+    showToast('Could not extend session.', true);
   }
 }
 
@@ -519,4 +619,20 @@ if (eyeToggle) {
 /* ===========================
    Initialize
    =========================== */
-checkAuth();
+async function init() {
+  try {
+    const response = await fetch('/api/auth-check');
+    const data = await response.json();
+    if (data.authenticated) {
+      showDashboardView();
+      startSessionTimer(data.sessionMaxAge || 1800);
+      await loadConnections();
+    } else {
+      showLoginView();
+    }
+  } catch (err) {
+    showLoginView();
+  }
+}
+init();
+
