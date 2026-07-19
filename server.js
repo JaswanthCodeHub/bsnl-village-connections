@@ -206,6 +206,21 @@ app.use((_req, res, next) => {
   next();
 });
 
+// CORS headers
+const ALLOWED_ORIGINS = (process.env.ALLOWED_ORIGINS || '').split(',').map(s => s.trim()).filter(Boolean);
+app.use((req, res, next) => {
+  const origin = req.headers.origin;
+  if (origin && (ALLOWED_ORIGINS.length === 0 || ALLOWED_ORIGINS.includes(origin))) {
+    res.setHeader('Access-Control-Allow-Origin', origin);
+    res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PUT, DELETE, OPTIONS');
+    res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
+    res.setHeader('Access-Control-Allow-Credentials', 'true');
+    res.setHeader('Access-Control-Max-Age', '86400');
+  }
+  if (req.method === 'OPTIONS') return res.status(204).end();
+  next();
+});
+
 /* ===========================
    Authentication Helpers & Routes
    =========================== */
@@ -311,16 +326,24 @@ app.get('/api/auth-check', (req, res) => {
    API Routes
    =========================== */
 
-// GET all connections
-app.get('/api/connections', requireAuth, async (_req, res, next) => {
+// GET all connections (supports pagination: ?limit=500&skip=0)
+app.get('/api/connections', requireAuth, async (req, res, next) => {
   try {
     const connectionsCollection = await getCollection();
+    const limit = Math.min(Math.max(parseInt(req.query.limit, 10) || 500, 1), 2000);
+    const skip = Math.max(parseInt(req.query.skip, 10) || 0, 0);
+    const total = await connectionsCollection.countDocuments();
     const connections = await connectionsCollection
       .find({})
       .sort({ createdAt: -1 })
+      .skip(skip)
+      .limit(limit)
       .toArray();
     res.json({
       connections: connections.map(stripId),
+      total,
+      limit,
+      skip,
       updatedAt: new Date().toISOString()
     });
   } catch (error) { next(error); }
