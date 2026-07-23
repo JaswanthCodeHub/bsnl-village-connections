@@ -54,13 +54,13 @@
       <!-- Right Form Panel -->
       <div class="login-form-panel">
         <div class="login-card">
-          <p class="login-form-eyebrow">WELCOME BACK</p>
-          <h2 class="login-form-title">Sign in to continue</h2>
-          <p class="login-form-hint">Use the account created by your administrator.</p>
+          <p class="login-form-eyebrow" style="color: var(--primary); font-weight: 700; letter-spacing: 0.08em;">ADMINISTRATOR PORTAL</p>
+          <h2 class="login-form-title">BSNL Admin Login</h2>
+          <p class="login-form-hint">Staff access only. Manage connections, complaints & exports.</p>
 
           <form id="loginForm" autocomplete="on">
             <div class="login-form-group">
-              <label for="loginUsername">Username</label>
+              <label for="loginUsername">Admin Username</label>
               <div class="input-wrapper">
                 <svg class="input-icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
                 <input type="text" id="loginUsername" placeholder="e.g. sai krishna" required autocomplete="username" />
@@ -82,17 +82,21 @@
             </div>
 
             <button type="submit" class="login-submit-btn" id="loginSubmitBtn">
-              Sign in
+              Admin Sign In
             </button>
             
             <p class="login-encrypted">
               <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
-              Your data is encrypted end-to-end
+              Encrypted Admin Session
             </p>
 
-            <p class="login-create-acc">
-              New customer? <a href="/complaints.html">Create an account / Book complaint</a>
-            </p>
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); text-align: center;">
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 0.5rem;">Are you a BSNL Customer?</p>
+              <a href="/user.html" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: 600;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Go to Customer Account Portal
+              </a>
+            </div>
           </form>
         </div>
       </div>
