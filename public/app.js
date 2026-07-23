@@ -438,11 +438,13 @@ function showLoginView() {
   $('#appShell').style.display = 'none';
   $('#loginShell').style.display = 'flex';
   $('#loginPassword').value = '';
+  stopComplaintPolling();
 }
 
 function showDashboardView() {
   $('#loginShell').style.display = 'none';
   $('#appShell').style.display = 'block';
+  startComplaintPolling();
 }
 
 /* checkAuth() removed — init() handles this */
@@ -782,3 +784,107 @@ document.querySelectorAll('.complaint-stat').forEach(stat => {
 });
 
 $('#complaintStatusFilter')?.addEventListener('change', loadAdminComplaints);
+
+/* ===========================
+   New Complaint Notification System
+   =========================== */
+let lastPollTime = new Date().toISOString();
+let notificationPollTimer = null;
+
+// Request browser notification permission
+function requestNotificationPermission() {
+  if ('Notification' in window && Notification.permission === 'default') {
+    Notification.requestPermission();
+  }
+}
+
+// Play alert sound
+function playAlertSound() {
+  try {
+    const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+    // Play two ascending tones
+    [520, 680].forEach((freq, i) => {
+      const osc = audioCtx.createOscillator();
+      const gain = audioCtx.createGain();
+      osc.connect(gain);
+      gain.connect(audioCtx.destination);
+      osc.frequency.value = freq;
+      osc.type = 'sine';
+      gain.gain.setValueAtTime(0.3, audioCtx.currentTime + i * 0.2);
+      gain.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + i * 0.2 + 0.4);
+      osc.start(audioCtx.currentTime + i * 0.2);
+      osc.stop(audioCtx.currentTime + i * 0.2 + 0.4);
+    });
+  } catch {}
+}
+
+// Show browser notification
+function showBrowserNotification(complaint) {
+  if ('Notification' in window && Notification.permission === 'granted') {
+    const n = new Notification('🚨 New BSNL Complaint', {
+      body: `${complaint.customerName} - ${complaint.category}\nArea: ${complaint.area}`,
+      icon: 'data:image/svg+xml,<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100"><rect fill="%233b82f6" width="100" height="100" rx="20"/><text x="50" y="68" font-size="60" fill="white" text-anchor="middle" font-weight="bold">B</text></svg>',
+      tag: 'bsnl-complaint-' + Date.now(),
+      requireInteraction: true
+    });
+    n.onclick = () => {
+      window.focus();
+      // Switch to complaints tab
+      document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+      $('#tabComplaints')?.classList.add('active');
+      if ($('#connectionsTab')) $('#connectionsTab').style.display = 'none';
+      const ct = document.querySelector('#complaintsTab');
+      if (ct) ct.style.display = 'block';
+      loadAdminComplaints();
+      n.close();
+    };
+  }
+}
+
+// Poll for new complaints
+async function pollNewComplaints() {
+  try {
+    const res = await originalFetch(`/api/complaints/new-count?since=${encodeURIComponent(lastPollTime)}`);
+    if (!res.ok) return;
+    const data = await res.json();
+
+    if (data.newCount > 0) {
+      // Update badge
+      const badge = $('#complaintsBadge');
+      if (badge) {
+        badge.textContent = data.openCount;
+        badge.style.display = data.openCount > 0 ? 'inline-flex' : 'none';
+      }
+      // Play sound & show notifications
+      playAlertSound();
+      data.complaints.forEach(c => showBrowserNotification(c));
+      // Show toast
+      showToast(`🚨 ${data.newCount} new complaint${data.newCount > 1 ? 's' : ''} received!`);
+      // Refresh complaints if on complaints tab
+      const ct = document.querySelector('#complaintsTab');
+      if (ct && ct.style.display !== 'none') {
+        loadAdminComplaints();
+      }
+    }
+
+    lastPollTime = new Date().toISOString();
+  } catch {}
+}
+
+// Start polling when admin is logged in
+function startComplaintPolling() {
+  requestNotificationPermission();
+  lastPollTime = new Date().toISOString();
+  if (notificationPollTimer) clearInterval(notificationPollTimer);
+  notificationPollTimer = setInterval(pollNewComplaints, 30000); // Every 30 seconds
+}
+
+function stopComplaintPolling() {
+  if (notificationPollTimer) {
+    clearInterval(notificationPollTimer);
+    notificationPollTimer = null;
+  }
+}
+
+// Hook into login/logout
+

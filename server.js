@@ -24,6 +24,10 @@ const COMPLAINTS_COLLECTION = 'complaints';
 const LANDLINE_PREFIX = '08643';
 const USER_ID_SUFFIX = '_sid@ftth.bsnl.in';
 
+// Telegram Alert Config
+const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
+const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
+
 const FIELDS = ['area', 'vlanNo', 'customerName', 'landlineNo', 'userId', 'notes'];
 
 const HEADER_ALIASES = {
@@ -90,6 +94,33 @@ async function getComplaintsCollection() {
    =========================== */
 function cleanText(value, max = 500) {
   return String(value ?? '').trim().slice(0, max);
+}
+
+// Send Telegram notification (fire-and-forget)
+async function sendTelegramAlert(complaint) {
+  if (!TELEGRAM_BOT_TOKEN || !TELEGRAM_CHAT_ID) return;
+  try {
+    const msg = `🚨 *New Complaint Received*\n\n` +
+      `👤 *Customer:* ${complaint.customerName}\n` +
+      `📞 *Landline:* ${complaint.customerId}\n` +
+      `📍 *Area:* ${complaint.area}\n` +
+      `📋 *Category:* ${complaint.category}\n` +
+      `📝 *Issue:* ${complaint.description.slice(0, 200)}\n` +
+      `🕐 *Time:* ${new Date(complaint.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' })}`;
+
+    const url = `https://api.telegram.org/bot${TELEGRAM_BOT_TOKEN}/sendMessage`;
+    await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chat_id: TELEGRAM_CHAT_ID,
+        text: msg,
+        parse_mode: 'Markdown'
+      })
+    });
+  } catch (err) {
+    console.error('Telegram alert failed:', err.message);
+  }
 }
 
 function normaliseStatus(value) {
@@ -739,6 +770,8 @@ app.post('/api/customer/complaints', requireCustomerAuth, async (req, res, next)
       resolvedAt: null
     };
     await complaintsCol.insertOne(complaint);
+    // Send Telegram alert to admin (fire-and-forget, don't block response)
+    sendTelegramAlert(complaint).catch(() => {});
     res.status(201).json({ complaint: stripId(complaint) });
   } catch (error) { next(error); }
 });
@@ -775,6 +808,30 @@ app.get('/api/complaints', requireAuth, async (req, res, next) => {
       closed: await complaintsCol.countDocuments({ status: 'closed' })
     };
     res.json({ complaints: complaints.map(stripId), counts });
+  } catch (error) { next(error); }
+});
+
+// Admin: Check for new complaints since timestamp (for polling/notifications)
+app.get('/api/complaints/new-count', requireAuth, async (req, res, next) => {
+  try {
+    const since = req.query.since || new Date(Date.now() - 30000).toISOString();
+    const complaintsCol = await getComplaintsCollection();
+    const newComplaints = await complaintsCol
+      .find({ createdAt: { $gt: since }, status: 'open' })
+      .sort({ createdAt: -1 })
+      .limit(5)
+      .toArray();
+    const openCount = await complaintsCol.countDocuments({ status: 'open' });
+    res.json({
+      newCount: newComplaints.length,
+      openCount,
+      complaints: newComplaints.map(c => ({
+        customerName: c.customerName,
+        category: c.category,
+        area: c.area,
+        createdAt: c.createdAt
+      }))
+    });
   } catch (error) { next(error); }
 });
 
