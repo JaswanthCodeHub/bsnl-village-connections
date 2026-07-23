@@ -20,6 +20,7 @@ const ROOT = __dirname;
 const MONGODB_URI = process.env.MONGODB_URI || 'mongodb://localhost:27017/bsnl';
 const DB_NAME = 'bsnl_manager';
 const COLLECTION_NAME = 'connections';
+const COMPLAINTS_COLLECTION = 'complaints';
 const LANDLINE_PREFIX = '08643';
 const USER_ID_SUFFIX = '_sid@ftth.bsnl.in';
 
@@ -49,6 +50,7 @@ const EXPORT_COLUMNS = [
 let client = null;
 let db = null;
 let connectionsCollection = null;
+let complaintsCollection = null;
 
 async function getCollection() {
   if (connectionsCollection && client?.topology?.s?.state === 'connected') {
@@ -60,16 +62,27 @@ async function getCollection() {
   await client.connect();
   db = client.db(DB_NAME);
   connectionsCollection = db.collection(COLLECTION_NAME);
+  complaintsCollection = db.collection(COMPLAINTS_COLLECTION);
 
-  // Create index on 'id' field for fast lookups
+  // Create indexes for connections
   await connectionsCollection.createIndex({ id: 1 }, { unique: true }).catch(() => {});
-  // Create index on 'area' field for fast area-based queries
   await connectionsCollection.createIndex({ area: 1 }).catch(() => {});
-  // Create text index for full-text search
+  await connectionsCollection.createIndex({ landlineNo: 1 }).catch(() => {});
   await connectionsCollection.createIndex({ customerName: 'text', landlineNo: 'text', userId: 'text' }).catch(() => {});
+
+  // Create indexes for complaints
+  await complaintsCollection.createIndex({ id: 1 }, { unique: true }).catch(() => {});
+  await complaintsCollection.createIndex({ customerId: 1 }).catch(() => {});
+  await complaintsCollection.createIndex({ status: 1 }).catch(() => {});
+  await complaintsCollection.createIndex({ createdAt: -1 }).catch(() => {});
 
   console.log('Connected to MongoDB successfully.');
   return connectionsCollection;
+}
+
+async function getComplaintsCollection() {
+  await getCollection();
+  return complaintsCollection;
 }
 
 /* ===========================
@@ -463,6 +476,209 @@ app.get('/api/backup', requireAuth, async (_req, res, next) => {
     const date = new Date().toISOString().slice(0, 10);
     res.setHeader('Content-Disposition', `attachment; filename="bsnl-backup-${date}.json"`);
     res.type('application/json').send(JSON.stringify(backup, null, 2));
+  } catch (error) { next(error); }
+});
+
+/* ===========================
+   Customer Authentication
+   =========================== */
+const CUSTOMER_SESSION_SECRET = process.env.CUSTOMER_SESSION_SECRET || 'bsnl-customer-session-2026';
+const CUSTOMER_SESSION_MAX_AGE = 3600; // 1 hour
+
+function generateCustomerToken(landlineNo) {
+  const timestamp = Date.now();
+  const payload = `customer:${landlineNo}:${timestamp}`;
+  const hmac = crypto.createHmac('sha256', CUSTOMER_SESSION_SECRET).update(payload).digest('hex');
+  return `${hmac}.${landlineNo}.${timestamp}`;
+}
+
+function verifyCustomerToken(token) {
+  if (!token || token.split('.').length !== 3) return null;
+  const [hmac, landlineNo, timestampStr] = token.split('.');
+  const timestamp = parseInt(timestampStr, 10);
+  if (isNaN(timestamp)) return null;
+  const ageMs = Date.now() - timestamp;
+  if (ageMs > CUSTOMER_SESSION_MAX_AGE * 1000) return null;
+  const payload = `customer:${landlineNo}:${timestamp}`;
+  const expectedHmac = crypto.createHmac('sha256', CUSTOMER_SESSION_SECRET).update(payload).digest('hex');
+  try {
+    if (crypto.timingSafeEqual(Buffer.from(hmac, 'hex'), Buffer.from(expectedHmac, 'hex'))) {
+      return landlineNo;
+    }
+  } catch {}
+  return null;
+}
+
+function requireCustomerAuth(req, res, next) {
+  const token = getCookie(req, 'customer_token');
+  const landlineNo = verifyCustomerToken(token);
+  if (landlineNo) {
+    req.customerLandline = landlineNo;
+    return next();
+  }
+  res.status(401).json({ error: 'Please login again.' });
+}
+
+// Customer login
+app.post('/api/customer/login', async (req, res, next) => {
+  try {
+    const { landlineNo } = req.body;
+    if (!landlineNo) return res.status(400).json({ error: 'Landline number is required.' });
+    const cleaned = landlineNo.replace(/\D/g, '');
+    if (cleaned.length !== 11 || !cleaned.startsWith(LANDLINE_PREFIX)) {
+      return res.status(400).json({ error: 'Enter a valid 11-digit landline number starting with 08643.' });
+    }
+    const formatted = `${cleaned.slice(0, 5)}-${cleaned.slice(5)}`;
+    const connectionsCol = await getCollection();
+    const customer = await connectionsCol.findOne({ landlineNo: formatted });
+    if (!customer) {
+      return res.status(404).json({ error: 'This landline number is not registered. Please contact your BSNL office.' });
+    }
+    const token = generateCustomerToken(formatted);
+    const isProd = process.env.NODE_ENV === 'production';
+    res.setHeader('Set-Cookie', `customer_token=${token}; Path=/; HttpOnly; Max-Age=${CUSTOMER_SESSION_MAX_AGE}; SameSite=Strict${isProd ? '; Secure' : ''}`);
+    res.json({
+      success: true,
+      customer: {
+        customerName: customer.customerName,
+        landlineNo: customer.landlineNo,
+        area: customer.area,
+        userId: customer.userId
+      },
+      sessionMaxAge: CUSTOMER_SESSION_MAX_AGE
+    });
+  } catch (error) { next(error); }
+});
+
+// Customer auth check
+app.get('/api/customer/auth-check', async (req, res, next) => {
+  try {
+    const token = getCookie(req, 'customer_token');
+    const landlineNo = verifyCustomerToken(token);
+    if (!landlineNo) return res.json({ authenticated: false });
+    const connectionsCol = await getCollection();
+    const customer = await connectionsCol.findOne({ landlineNo });
+    if (!customer) return res.json({ authenticated: false });
+    res.json({
+      authenticated: true,
+      customer: {
+        customerName: customer.customerName,
+        landlineNo: customer.landlineNo,
+        area: customer.area,
+        userId: customer.userId
+      },
+      sessionMaxAge: CUSTOMER_SESSION_MAX_AGE
+    });
+  } catch (error) { next(error); }
+});
+
+// Customer logout
+app.post('/api/customer/logout', (_req, res) => {
+  res.setHeader('Set-Cookie', 'customer_token=; Path=/; HttpOnly; Max-Age=0; SameSite=Strict');
+  res.json({ success: true });
+});
+
+/* ===========================
+   Customer Complaint Routes
+   =========================== */
+const COMPLAINT_CATEGORIES = ['No Internet', 'Slow Speed', 'Disconnection', 'Billing Issue', 'Other'];
+const COMPLAINT_STATUSES = ['open', 'in-progress', 'resolved', 'closed'];
+
+// Customer: Book a new complaint
+app.post('/api/customer/complaints', requireCustomerAuth, async (req, res, next) => {
+  try {
+    const { category, description } = req.body;
+    if (!category || !COMPLAINT_CATEGORIES.includes(category)) {
+      return res.status(400).json({ error: 'Please select a valid complaint category.' });
+    }
+    if (!description || !description.trim()) {
+      return res.status(400).json({ error: 'Please describe your issue.' });
+    }
+    if (description.trim().length > 2000) {
+      return res.status(400).json({ error: 'Description is too long (max 2000 characters).' });
+    }
+    const connectionsCol = await getCollection();
+    const customer = await connectionsCol.findOne({ landlineNo: req.customerLandline });
+    if (!customer) return res.status(404).json({ error: 'Customer not found.' });
+
+    const complaintsCol = await getComplaintsCollection();
+    const now = new Date().toISOString();
+    const complaint = {
+      id: crypto.randomUUID(),
+      customerId: req.customerLandline,
+      customerName: customer.customerName,
+      area: customer.area,
+      userId: customer.userId,
+      category: category,
+      description: cleanText(description, 2000),
+      status: 'open',
+      adminNote: '',
+      createdAt: now,
+      updatedAt: now,
+      resolvedAt: null
+    };
+    await complaintsCol.insertOne(complaint);
+    res.status(201).json({ complaint: stripId(complaint) });
+  } catch (error) { next(error); }
+});
+
+// Customer: Get my complaints
+app.get('/api/customer/complaints', requireCustomerAuth, async (req, res, next) => {
+  try {
+    const complaintsCol = await getComplaintsCollection();
+    const complaints = await complaintsCol
+      .find({ customerId: req.customerLandline })
+      .sort({ createdAt: -1 })
+      .toArray();
+    res.json({ complaints: complaints.map(stripId) });
+  } catch (error) { next(error); }
+});
+
+// Admin: Get all complaints
+app.get('/api/complaints', requireAuth, async (req, res, next) => {
+  try {
+    const complaintsCol = await getComplaintsCollection();
+    const filter = {};
+    if (req.query.status && COMPLAINT_STATUSES.includes(req.query.status)) {
+      filter.status = req.query.status;
+    }
+    const complaints = await complaintsCol
+      .find(filter)
+      .sort({ createdAt: -1 })
+      .toArray();
+    const counts = {
+      total: await complaintsCol.countDocuments(),
+      open: await complaintsCol.countDocuments({ status: 'open' }),
+      'in-progress': await complaintsCol.countDocuments({ status: 'in-progress' }),
+      resolved: await complaintsCol.countDocuments({ status: 'resolved' }),
+      closed: await complaintsCol.countDocuments({ status: 'closed' })
+    };
+    res.json({ complaints: complaints.map(stripId), counts });
+  } catch (error) { next(error); }
+});
+
+// Admin: Update complaint status
+app.put('/api/complaints/:id/status', requireAuth, async (req, res, next) => {
+  try {
+    const { status, adminNote } = req.body;
+    if (!status || !COMPLAINT_STATUSES.includes(status)) {
+      return res.status(400).json({ error: 'Invalid status.' });
+    }
+    const complaintsCol = await getComplaintsCollection();
+    const existing = await complaintsCol.findOne({ id: req.params.id });
+    if (!existing) return res.status(404).json({ error: 'Complaint not found.' });
+
+    const update = {
+      status,
+      adminNote: cleanText(adminNote || existing.adminNote, 2000),
+      updatedAt: new Date().toISOString()
+    };
+    if (status === 'resolved' || status === 'closed') {
+      update.resolvedAt = update.updatedAt;
+    }
+    await complaintsCol.updateOne({ id: req.params.id }, { $set: update });
+    const updated = await complaintsCol.findOne({ id: req.params.id });
+    res.json({ complaint: stripId(updated) });
   } catch (error) { next(error); }
 });
 

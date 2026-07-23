@@ -120,8 +120,21 @@
         </div>
       </header>
 
-      <!-- ===== Main Content ===== -->
-      <main>
+      <!-- ===== Tab Navigation ===== -->
+      <nav class="admin-tabs">
+        <button class="admin-tab active" data-tab="connections" id="tabConnections" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Connections
+        </button>
+        <button class="admin-tab" data-tab="complaints" id="tabComplaints" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Complaints
+          <span class="tab-badge" id="complaintsBadge" style="display:none;">0</span>
+        </button>
+      </nav>
+
+      <!-- ===== Connections Tab ===== -->
+      <main id="connectionsTab">
 
         <!-- Intro Section -->
         <section class="intro">
@@ -225,6 +238,67 @@
             <button id="emptyAddButton" class="button primary" type="button">
               ＋ Add customer
             </button>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- ===== Complaints Tab ===== -->
+      <main id="complaintsTab" style="display:none;">
+
+        <section class="intro">
+          <div>
+            <p class="eyebrow">COMPLAINTS</p>
+            <h2>Customer complaint management</h2>
+            <p>View, respond, and resolve customer complaints.</p>
+          </div>
+        </section>
+
+        <!-- Complaint Stats -->
+        <section class="complaint-stats">
+          <div class="complaint-stat" data-filter="">
+            <span class="complaint-stat-count" id="statTotal">0</span>
+            <span class="complaint-stat-label">Total</span>
+          </div>
+          <div class="complaint-stat" data-filter="open">
+            <span class="complaint-stat-count stat-open" id="statOpen">0</span>
+            <span class="complaint-stat-label">Open</span>
+          </div>
+          <div class="complaint-stat" data-filter="in-progress">
+            <span class="complaint-stat-count stat-progress" id="statProgress">0</span>
+            <span class="complaint-stat-label">In Progress</span>
+          </div>
+          <div class="complaint-stat" data-filter="resolved">
+            <span class="complaint-stat-count stat-resolved" id="statResolved">0</span>
+            <span class="complaint-stat-label">Resolved</span>
+          </div>
+          <div class="complaint-stat" data-filter="closed">
+            <span class="complaint-stat-count stat-closed" id="statClosed">0</span>
+            <span class="complaint-stat-label">Closed</span>
+          </div>
+        </section>
+
+        <!-- Status Filter -->
+        <section class="actions-card">
+          <div class="filter-wrap">
+            <label for="complaintStatusFilter">FILTER BY STATUS</label>
+            <select id="complaintStatusFilter">
+              <option value="">All complaints</option>
+              <option value="open">Open</option>
+              <option value="in-progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- Complaints List -->
+        <section class="table-card">
+          <div id="adminComplaintsList" class="admin-complaints-list"></div>
+          <div id="adminComplaintsEmpty" class="empty-state" hidden>
+            <div class="empty-icon">✓</div>
+            <h3>No complaints</h3>
+            <p>There are no complaints matching this filter.</p>
           </div>
         </section>
 

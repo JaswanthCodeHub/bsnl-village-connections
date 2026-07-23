@@ -618,6 +618,7 @@ async function init() {
       showDashboardView();
       startSessionTimer(data.sessionMaxAge || 1800);
       await loadConnections();
+      loadAdminComplaints();
     } else {
       showLoginView();
     }
@@ -627,3 +628,157 @@ async function init() {
 }
 init();
 
+/* ===========================
+   Admin Tab Switching
+   =========================== */
+document.querySelectorAll('.admin-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.admin-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.tab;
+    $('#connectionsTab').style.display = target === 'connections' ? 'block' : 'none';
+    $('#complaintsTab').style.display = target === 'complaints' ? 'block' : 'none';
+    if (target === 'complaints') loadAdminComplaints();
+  });
+});
+
+/* ===========================
+   Admin Complaint Management
+   =========================== */
+let adminComplaints = [];
+
+const statusLabels = {
+  'open': 'Open',
+  'in-progress': 'In Progress',
+  'resolved': 'Resolved',
+  'closed': 'Closed'
+};
+
+const statusClasses = {
+  'open': 'badge-open',
+  'in-progress': 'badge-progress',
+  'resolved': 'badge-resolved',
+  'closed': 'badge-closed'
+};
+
+function formatDate(isoStr) {
+  if (!isoStr) return '—';
+  return new Intl.DateTimeFormat('en-IN', {
+    dateStyle: 'medium',
+    timeStyle: 'short'
+  }).format(new Date(isoStr));
+}
+
+async function loadAdminComplaints() {
+  try {
+    const status = $('#complaintStatusFilter')?.value || '';
+    const url = status ? `/api/complaints?status=${status}` : '/api/complaints';
+    const response = await fetch(url);
+    if (!response.ok) return;
+    const data = await response.json();
+    adminComplaints = data.complaints;
+
+    // Update stats
+    if (data.counts) {
+      $('#statTotal').textContent = data.counts.total;
+      $('#statOpen').textContent = data.counts.open;
+      $('#statProgress').textContent = data.counts['in-progress'];
+      $('#statResolved').textContent = data.counts.resolved;
+      $('#statClosed').textContent = data.counts.closed;
+
+      // Update badge
+      const badge = $('#complaintsBadge');
+      if (data.counts.open > 0) {
+        badge.textContent = data.counts.open;
+        badge.style.display = 'inline-flex';
+      } else {
+        badge.style.display = 'none';
+      }
+    }
+
+    renderAdminComplaints();
+  } catch {
+    showToast('Could not load complaints.', true);
+  }
+}
+
+function renderAdminComplaints() {
+  const list = $('#adminComplaintsList');
+  const empty = $('#adminComplaintsEmpty');
+
+  if (!adminComplaints.length) {
+    list.innerHTML = '';
+    empty.hidden = false;
+    return;
+  }
+  empty.hidden = true;
+
+  list.innerHTML = adminComplaints.map(c => `
+    <div class="admin-complaint-card" data-id="${c.id}">
+      <div class="admin-complaint-header">
+        <div>
+          <span class="admin-complaint-name">${escapeHtml(c.customerName)}</span>
+          <span class="admin-complaint-area">${escapeHtml(c.area)}</span>
+        </div>
+        <span class="complaint-badge ${statusClasses[c.status]}">${statusLabels[c.status]}</span>
+      </div>
+      <div class="admin-complaint-meta">
+        <span>📞 ${escapeHtml(c.customerId)}</span>
+        <span>📁 ${escapeHtml(c.category)}</span>
+        <span>🕐 ${formatDate(c.createdAt)}</span>
+      </div>
+      <div class="admin-complaint-desc">${escapeHtml(c.description)}</div>
+      ${c.adminNote ? `<div class="admin-complaint-note"><strong>Admin Note:</strong> ${escapeHtml(c.adminNote)}</div>` : ''}
+      <div class="admin-complaint-actions">
+        <select class="complaint-status-select" data-id="${c.id}">
+          <option value="open" ${c.status === 'open' ? 'selected' : ''}>Open</option>
+          <option value="in-progress" ${c.status === 'in-progress' ? 'selected' : ''}>In Progress</option>
+          <option value="resolved" ${c.status === 'resolved' ? 'selected' : ''}>Resolved</option>
+          <option value="closed" ${c.status === 'closed' ? 'selected' : ''}>Closed</option>
+        </select>
+        <input type="text" class="complaint-note-input" data-id="${c.id}" placeholder="Add a note…" value="${escapeHtml(c.adminNote || '')}"/>
+        <button class="button primary complaint-update-btn" data-id="${c.id}" type="button">Update</button>
+      </div>
+    </div>
+  `).join('');
+}
+
+// Handle complaint status updates
+$('#adminComplaintsList')?.addEventListener('click', async (event) => {
+  const btn = event.target.closest('.complaint-update-btn');
+  if (!btn) return;
+  const id = btn.dataset.id;
+  const card = btn.closest('.admin-complaint-card');
+  const status = card.querySelector('.complaint-status-select').value;
+  const adminNote = card.querySelector('.complaint-note-input').value;
+
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    const response = await fetch(`/api/complaints/${id}/status`, {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ status, adminNote })
+    });
+    if (!response.ok) throw new Error('Update failed');
+    showToast('Complaint updated.');
+    await loadAdminComplaints();
+  } catch {
+    showToast('Could not update complaint.', true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Update';
+  }
+});
+
+// Stat cards clickable filter
+document.querySelectorAll('.complaint-stat').forEach(stat => {
+  stat.addEventListener('click', () => {
+    const filter = stat.dataset.filter;
+    $('#complaintStatusFilter').value = filter;
+    loadAdminComplaints();
+  });
+});
+
+$('#complaintStatusFilter')?.addEventListener('change', loadAdminComplaints);
