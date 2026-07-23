@@ -1,0 +1,432 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#3b82f6" />
+    <title>BSNL Admin Portal</title>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=DM+Serif+Display&family=Inter:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@500;600;700;800&family=Noto+Sans+Telugu:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+    <link rel="stylesheet" href="overrides.css" />
+  </head>
+  <body>
+    <!-- ===== Login Shell ===== -->
+    <div class="login-shell" id="loginShell">
+
+      <!-- Left Hero Panel -->
+      <div class="login-hero">
+        <div class="login-hero-top">
+          <div class="brand login-brand-white">
+            <span class="brand-mark">B</span>
+            <div>
+              <h1>BSNL Fiber Manager</h1>
+            </div>
+          </div>
+        </div>
+
+        <div class="login-hero-content">
+          <p class="login-eyebrow">ADMINISTRATOR ACCESS</p>
+          <h2 class="login-headline">One place for every connection record.</h2>
+          <p class="login-subtitle">Give your team a secure login and keep your BSNL customer data organised in one shared workspace.</p>
+        </div>
+
+        <ul class="login-features">
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="rgba(96,211,214,0.2)"/><path d="M5 8.2L7.2 10.4L11 5.6" stroke="#60d3d6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Protected customer records
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="rgba(96,211,214,0.2)"/><path d="M5 8.2L7.2 10.4L11 5.6" stroke="#60d3d6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Admin-managed user accounts
+          </li>
+          <li>
+            <svg width="16" height="16" viewBox="0 0 16 16" fill="none"><circle cx="8" cy="8" r="8" fill="rgba(96,211,214,0.2)"/><path d="M5 8.2L7.2 10.4L11 5.6" stroke="#60d3d6" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round"/></svg>
+            Excel import and backup
+          </li>
+        </ul>
+      </div>
+
+      <!-- Right Form Panel -->
+      <div class="login-form-panel">
+        <div class="login-card">
+          <p class="login-form-eyebrow" style="color: var(--primary); font-weight: 700; letter-spacing: 0.08em;">ADMINISTRATOR PORTAL</p>
+          <h2 class="login-form-title">BSNL Admin Login</h2>
+          <p class="login-form-hint">Staff access only. Manage connections, complaints & exports.</p>
+
+          <form id="loginForm" autocomplete="on">
+            <div class="login-form-group">
+              <label for="loginUsername">Admin Username</label>
+              <div class="input-wrapper">
+                <svg class="input-icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                <input type="text" id="loginUsername" placeholder="e.g. sai krishna" required autocomplete="username" />
+              </div>
+            </div>
+
+            <div class="login-form-group">
+              <div class="label-row">
+                <label for="loginPassword">Password</label>
+                <a href="#" class="forgot-link">Forgot password?</a>
+              </div>
+              <div class="input-wrapper">
+                <svg class="input-icon-left" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                <input type="password" id="loginPassword" placeholder="••••••••" required autocomplete="current-password" />
+                <button type="button" class="eye-toggle" aria-label="Toggle password visibility" aria-pressed="false">
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                </button>
+              </div>
+            </div>
+
+            <button type="submit" class="login-submit-btn" id="loginSubmitBtn">
+              Admin Sign In
+            </button>
+            
+            <p class="login-encrypted">
+              <svg width="10" height="10" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+              Encrypted Admin Session
+            </p>
+
+            <div style="margin-top: 1.5rem; padding-top: 1rem; border-top: 1px solid var(--border); text-align: center;">
+              <p style="font-size: 0.85rem; color: var(--text-muted); margin: 0 0 0.5rem;">Are you a BSNL Customer?</p>
+              <a href="/user.html" class="btn btn-outline btn-sm" style="display: inline-flex; align-items: center; gap: 6px; text-decoration: none; font-weight: 600;">
+                <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                Go to Customer Account Portal
+              </a>
+            </div>
+          </form>
+        </div>
+      </div>
+
+    </div>
+
+    <div class="app-shell" id="appShell" style="display: none;">
+
+      <!-- ===== Top Bar ===== -->
+      <header class="topbar">
+        <div class="brand">
+          <span class="brand-mark">B</span>
+          <div>
+            <h1>BSNL Fiber Manager</h1>
+            <p>All BSNL connections by area and route</p>
+          </div>
+        </div>
+        <div class="topbar-actions">
+          <button id="addButton" class="button primary" type="button">
+            <span>＋</span> Add customer
+          </button>
+          <button id="logoutButton" class="button secondary" type="button">
+            Sign out
+          </button>
+        </div>
+      </header>
+
+      <!-- ===== Tab Navigation ===== -->
+      <nav class="admin-tabs">
+        <button class="admin-tab active" data-tab="connections" id="tabConnections" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M17 21v-2a4 4 0 0 0-4-4H5a4 4 0 0 0-4 4v2"/><circle cx="9" cy="7" r="4"/><path d="M23 21v-2a4 4 0 0 0-3-3.87"/><path d="M16 3.13a4 4 0 0 1 0 7.75"/></svg>
+          Connections
+        </button>
+        <button class="admin-tab" data-tab="complaints" id="tabComplaints" type="button">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+          Complaints
+          <span class="tab-badge" id="complaintsBadge" style="display:none;">0</span>
+        </button>
+      </nav>
+
+      <!-- ===== Connections Tab ===== -->
+      <main id="connectionsTab">
+
+        <!-- Intro Section -->
+        <section class="intro">
+          <div>
+            <p class="eyebrow">DASHBOARD</p>
+            <h2>All your BSNL Fiber data, in one place.</h2>
+            <p>View each village separately, or search every customer at once.</p>
+          </div>
+        </section>
+
+        <!-- Actions Card: Search, Filter, Toolbar -->
+        <section class="actions-card">
+          <div class="search-wrap">
+            <label for="searchInput">SEARCH</label>
+            <div class="search-input-row">
+              <input
+                id="searchInput"
+                type="search"
+                placeholder="VLAN number, name, landline or user ID…"
+              />
+              <button id="voiceSearchBtn" class="voice-btn" type="button" title="Search by voice">
+                <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                  <path d="M12 1a3 3 0 0 0-3 3v8a3 3 0 0 0 6 0V4a3 3 0 0 0-3-3z"/>
+                  <path d="M19 10v2a7 7 0 0 1-14 0v-2"/>
+                  <line x1="12" y1="19" x2="12" y2="23"/>
+                  <line x1="8" y1="23" x2="16" y2="23"/>
+                </svg>
+              </button>
+            </div>
+          </div>
+
+          <div class="filter-wrap">
+            <label for="areaFilter">AREA / ROUTE</label>
+            <select id="areaFilter">
+              <option value="">All areas and routes</option>
+              <option value="Garalapadu">Garalapadu</option>
+              <option value="Pedavaripalem">Pedavaripalem</option>
+              <option value="Kommuru">Kommuru</option>
+              <option value="OLT to Parchur Side">OLT to Parchur Side</option>
+              <option value="PNP Sai Temple to Nagulapadu">PNP Sai Temple to Nagulapadu</option>
+              <option value="OLT to Varagani">OLT to Varagani</option>
+              <option value="PNP Bodaraya to Kommuru">PNP Bodaraya to Kommuru</option>
+              <option value="Bankers">Bankers</option>
+              <option value="Schools">Schools</option>
+              <option value="Offices">Offices</option>
+            </select>
+          </div>
+
+          <div class="toolbar">
+            <div class="replace-control">
+              <label
+                id="replaceLabel"
+                for="excelFile"
+                class="button secondary replace-button"
+              >
+                ↻ Replace selected Excel
+              </label>
+            </div>
+            <input id="excelFile" type="file" accept=".xlsx,.csv" hidden />
+            <a id="exportButton" class="button secondary" href="/api/export">
+              Download all Excel
+            </a>
+            <a class="text-button" href="/api/backup">Backup JSON</a>
+          </div>
+        </section>
+
+        <!-- Table Card: Customer Connections -->
+        <section class="table-card">
+          <div class="table-heading">
+            <div>
+              <h3>Customer connections</h3>
+              <p id="resultCount">0 results</p>
+            </div>
+            <button id="clearFilters" class="text-button" type="button">
+              Clear filters
+            </button>
+          </div>
+
+          <div class="table-scroll">
+            <table>
+              <thead>
+                <tr>
+                  <th>Area / Route</th>
+                  <th>VLAN No</th>
+                  <th class="name-column">Customer name</th>
+                  <th>Landline No</th>
+                  <th>User ID</th>
+                  <th aria-label="Actions"></th>
+                </tr>
+              </thead>
+              <tbody id="connectionsBody"></tbody>
+            </table>
+          </div>
+
+          <div id="mobileCards" class="mobile-cards"></div>
+
+          <div id="emptyState" class="empty-state" hidden>
+            <div class="empty-icon">⌁</div>
+            <h3>No customers yet</h3>
+            <p>Add a customer manually or import your Excel file to get started.</p>
+            <button id="emptyAddButton" class="button primary" type="button">
+              ＋ Add customer
+            </button>
+          </div>
+        </section>
+
+      </main>
+
+      <!-- ===== Complaints Tab ===== -->
+      <main id="complaintsTab" style="display:none;">
+
+        <section class="intro">
+          <div>
+            <p class="eyebrow">COMPLAINTS</p>
+            <h2>Customer complaint management</h2>
+            <p>View, respond, and resolve customer complaints.</p>
+          </div>
+        </section>
+
+        <!-- Complaint Stats -->
+        <section class="complaint-stats">
+          <div class="complaint-stat" data-filter="">
+            <span class="complaint-stat-count" id="statTotal">0</span>
+            <span class="complaint-stat-label">Total</span>
+          </div>
+          <div class="complaint-stat" data-filter="open">
+            <span class="complaint-stat-count stat-open" id="statOpen">0</span>
+            <span class="complaint-stat-label">Open</span>
+          </div>
+          <div class="complaint-stat" data-filter="in-progress">
+            <span class="complaint-stat-count stat-progress" id="statProgress">0</span>
+            <span class="complaint-stat-label">In Progress</span>
+          </div>
+          <div class="complaint-stat" data-filter="resolved">
+            <span class="complaint-stat-count stat-resolved" id="statResolved">0</span>
+            <span class="complaint-stat-label">Resolved</span>
+          </div>
+          <div class="complaint-stat" data-filter="closed">
+            <span class="complaint-stat-count stat-closed" id="statClosed">0</span>
+            <span class="complaint-stat-label">Closed</span>
+          </div>
+        </section>
+
+        <!-- Status Filter -->
+        <section class="actions-card">
+          <div class="filter-wrap">
+            <label for="complaintStatusFilter">FILTER BY STATUS</label>
+            <select id="complaintStatusFilter">
+              <option value="">All complaints</option>
+              <option value="open">Open</option>
+              <option value="in-progress">In Progress</option>
+              <option value="resolved">Resolved</option>
+              <option value="closed">Closed</option>
+            </select>
+          </div>
+        </section>
+
+        <!-- Complaints List -->
+        <section class="table-card">
+          <div id="adminComplaintsList" class="admin-complaints-list"></div>
+          <div id="adminComplaintsEmpty" class="empty-state" hidden>
+            <div class="empty-icon">✓</div>
+            <h3>No complaints</h3>
+            <p>There are no complaints matching this filter.</p>
+          </div>
+        </section>
+
+      </main>
+    </div>
+
+    <!-- ===== Add / Edit Customer Dialog ===== -->
+    <dialog id="connectionDialog" class="modal" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+      <form id="connectionForm" method="dialog" autocomplete="off" novalidate>
+
+        <div class="modal-header">
+          <div>
+            <p class="eyebrow" id="modalEyebrow">NEW CUSTOMER</p>
+            <h2 id="modalTitle">Add a customer</h2>
+          </div>
+          <button class="icon-button" value="cancel" aria-label="Close" type="submit">
+            ×
+          </button>
+        </div>
+
+        <input id="connectionId" type="hidden" />
+
+        <div class="form-grid">
+          <label>
+            Area / Route <span>*</span>
+            <select id="area" required>
+              <option value="">Select area or route</option>
+              <option value="Garalapadu">Garalapadu</option>
+              <option value="Pedavaripalem">Pedavaripalem</option>
+              <option value="Kommuru">Kommuru</option>
+              <option value="OLT to Parchur Side">OLT to Parchur Side</option>
+              <option value="PNP Sai Temple to Nagulapadu">PNP Sai Temple to Nagulapadu</option>
+              <option value="OLT to Varagani">OLT to Varagani</option>
+              <option value="PNP Bodaraya to Kommuru">PNP Bodaraya to Kommuru</option>
+              <option value="Bankers">Bankers</option>
+              <option value="Schools">Schools</option>
+              <option value="Offices">Offices</option>
+            </select>
+          </label>
+
+          <label>
+            VLAN number
+            <input
+              id="vlanNo"
+              inputmode="numeric"
+              maxlength="100"
+              autocomplete="new-password"
+              placeholder="e.g. 157"
+            />
+          </label>
+
+          <label>
+            Customer name <span>*</span>
+            <input
+              id="customerName"
+              required
+              maxlength="500"
+              autocomplete="new-password"
+              placeholder="e.g. K. Ramesh"
+            />
+          </label>
+
+          <label>
+            Landline number <span>*</span>
+            <input
+              id="landlineNo"
+              required
+              inputmode="tel"
+              maxlength="100"
+              autocomplete="new-password"
+              pattern="08643[- ]?[0-9]{6}"
+              title="Landline number must start with 08643"
+              placeholder="08643-293590"
+            />
+          </label>
+
+          <label>
+            User ID <span>*</span>
+            <div class="suffix-input">
+              <input
+                id="userIdPrefix"
+                required
+                maxlength="450"
+                autocomplete="new-password"
+                placeholder="e.g. 864329358471"
+              />
+              <span>_sid@ftth.bsnl.in</span>
+            </div>
+          </label>
+
+          <label class="full">
+            Notes
+            <textarea
+              id="notes"
+              rows="3"
+              maxlength="2000"
+              autocomplete="new-password"
+              placeholder="Any additional details"
+            ></textarea>
+          </label>
+        </div>
+
+        <div class="modal-footer">
+          <button class="button secondary" value="cancel" type="submit">Cancel</button>
+          <button class="button primary" id="saveButton" type="button">Save customer</button>
+        </div>
+
+      </form>
+    </dialog>
+
+    <!-- ===== Import Dialog ===== -->
+    <dialog id="importDialog" class="small-modal">
+      <div class="modal-header">
+        <div>
+          <p class="eyebrow">EXCEL IMPORT</p>
+          <h2>Reading your file…</h2>
+        </div>
+      </div>
+      <p id="importMessage">Please wait.</p>
+    </dialog>
+
+    <!-- ===== Toast Notification ===== -->
+    <div id="toast" class="toast" role="status" aria-live="polite"></div>
+
+    <script src="app.js"></script>
+  </body>
+</html>
