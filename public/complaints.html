@@ -4,7 +4,7 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="theme-color" content="#3b82f6">
-    <title>BSNL Complaint Portal</title>
+    <title>BSNL My Account</title>
     
     <!-- Google Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
@@ -59,49 +59,118 @@
         <header class="topbar">
             <div class="topbar-left">
                 <span class="brand-mark">B</span>
-                <span class="topbar-title">BSNL Customer Portal</span>
+                <span class="topbar-title">My BSNL Account</span>
             </div>
             <div class="topbar-right">
-                <span id="customerWelcome" class="welcome-text">Welcome, Customer</span>
+                <span id="customerWelcome" class="welcome-text">Welcome</span>
                 <button id="customerLogoutBtn" class="btn btn-outline btn-sm" aria-label="Logout">Logout</button>
             </div>
         </header>
 
-        <main class="dashboard-main">
-            <!-- Info Bar with Edit Button -->
-            <section class="info-bar card" aria-label="Customer Information">
-                <div class="info-bar-header">
-                    <h2 class="info-bar-title">Your Account Details</h2>
+        <!-- Tab Navigation -->
+        <nav class="customer-tabs">
+            <button class="cust-tab active" data-tab="account" id="tabMyAccount" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                My Account
+            </button>
+            <button class="cust-tab" data-tab="complaints" id="tabMyComplaints" type="button">
+                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                My Complaints
+                <span class="cust-tab-badge" id="complaintTabBadge" style="display:none;">0</span>
+            </button>
+        </nav>
+
+        <!-- ===== Tab 1: My Account ===== -->
+        <main id="accountTab" class="dashboard-main">
+
+            <!-- Welcome Banner -->
+            <section class="account-welcome-banner">
+                <div class="account-avatar" id="custAvatar">G</div>
+                <div>
+                    <h2 id="custBannerName" class="account-banner-name">Customer</h2>
+                    <p class="account-banner-sub">BSNL Fiber Connection Account</p>
+                </div>
+            </section>
+
+            <!-- Personal Info Card -->
+            <section class="account-card">
+                <div class="account-card-header">
+                    <h3 class="account-card-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        Personal Information
+                    </h3>
                     <button id="editProfileBtn" class="btn btn-outline btn-sm" type="button">
-                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
-                        Edit Details
+                        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        Edit
                     </button>
                 </div>
-                <div class="info-grid">
-                    <div class="info-item">
-                        <span class="info-label">Customer Name</span>
-                        <span id="custInfoName" class="info-value">--</span>
+                <div class="account-details-grid">
+                    <div class="account-detail">
+                        <span class="account-detail-label">Customer Name</span>
+                        <span class="account-detail-value" id="custInfoName">--</span>
                     </div>
-                    <div class="info-item">
-                        <span class="info-label">Landline No</span>
-                        <span id="custInfoLandline" class="info-value">--</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Area / Route</span>
-                        <span id="custInfoArea" class="info-value">--</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">User ID</span>
-                        <span id="custInfoUserId" class="info-value">--</span>
-                    </div>
-                    <div class="info-item">
-                        <span class="info-label">Status</span>
-                        <span id="custInfoStatus" class="info-value" style="color:#16a34a; font-weight:700;">Active</span>
+                    <div class="account-detail">
+                        <span class="account-detail-label">Area / Route</span>
+                        <span class="account-detail-value" id="custInfoArea">--</span>
                     </div>
                 </div>
             </section>
 
-            <!-- Actions Section -->
+            <!-- Connection Info Card -->
+            <section class="account-card">
+                <div class="account-card-header">
+                    <h3 class="account-card-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="2" y="3" width="20" height="14" rx="2" ry="2"/><line x1="8" y1="21" x2="16" y2="21"/><line x1="12" y1="17" x2="12" y2="21"/></svg>
+                        Connection Details
+                    </h3>
+                </div>
+                <div class="account-details-grid">
+                    <div class="account-detail">
+                        <span class="account-detail-label">Landline Number</span>
+                        <span class="account-detail-value" id="custInfoLandline">--</span>
+                    </div>
+                    <div class="account-detail">
+                        <span class="account-detail-label">User ID</span>
+                        <span class="account-detail-value account-detail-mono" id="custInfoUserId">--</span>
+                    </div>
+                    <div class="account-detail">
+                        <span class="account-detail-label">Connection Status</span>
+                        <span class="account-detail-value" id="custInfoStatus">
+                            <span class="status-pill active">● Active</span>
+                        </span>
+                    </div>
+                </div>
+            </section>
+
+            <!-- Quick Actions Card -->
+            <section class="account-card">
+                <div class="account-card-header">
+                    <h3 class="account-card-title">
+                        <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.65 1.65 0 0 0 .33 1.82l.06.06a2 2 0 0 1 0 2.83 2 2 0 0 1-2.83 0l-.06-.06a1.65 1.65 0 0 0-1.82-.33 1.65 1.65 0 0 0-1 1.51V21a2 2 0 0 1-2 2 2 2 0 0 1-2-2v-.09A1.65 1.65 0 0 0 9 19.4a1.65 1.65 0 0 0-1.82.33l-.06.06a2 2 0 0 1-2.83 0 2 2 0 0 1 0-2.83l.06-.06A1.65 1.65 0 0 0 4.68 15a1.65 1.65 0 0 0-1.51-1H3a2 2 0 0 1-2-2 2 2 0 0 1 2-2h.09A1.65 1.65 0 0 0 4.6 9a1.65 1.65 0 0 0-.33-1.82l-.06-.06a2 2 0 0 1 0-2.83 2 2 0 0 1 2.83 0l.06.06A1.65 1.65 0 0 0 9 4.68a1.65 1.65 0 0 0 1-1.51V3a2 2 0 0 1 2-2 2 2 0 0 1 2 2v.09a1.65 1.65 0 0 0 1 1.51 1.65 1.65 0 0 0 1.82-.33l.06-.06a2 2 0 0 1 2.83 0 2 2 0 0 1 0 2.83l-.06.06a1.65 1.65 0 0 0-.33 1.82V9a1.65 1.65 0 0 0 1.51 1H21a2 2 0 0 1 2 2 2 2 0 0 1-2 2h-.09a1.65 1.65 0 0 0-1.51 1z"/></svg>
+                        Quick Actions
+                    </h3>
+                </div>
+                <div class="account-actions-row">
+                    <button class="account-action-btn" id="quickComplaintBtn" type="button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+                        <span>Book Complaint</span>
+                    </button>
+                    <button class="account-action-btn" id="quickEditBtn" type="button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        <span>Edit Profile</span>
+                    </button>
+                    <button class="account-action-btn" id="quickPasswordBtn" type="button">
+                        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><rect x="3" y="11" width="18" height="11" rx="2" ry="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <span>Change Password</span>
+                    </button>
+                </div>
+            </section>
+
+        </main>
+
+        <!-- ===== Tab 2: My Complaints ===== -->
+        <main id="complaintsTab" class="dashboard-main" style="display:none;">
+
             <section class="actions-section" aria-label="Actions">
                 <div class="actions-header">
                     <h2 class="section-title">Your Complaints <span id="complaintsCount" class="badge">0</span></h2>
@@ -112,7 +181,6 @@
                 </div>
             </section>
 
-            <!-- Complaints List -->
             <section id="complaintsList" class="complaints-list" aria-label="List of Complaints">
                 <div id="complaintsEmpty" class="empty-state">
                     <div class="empty-icon">

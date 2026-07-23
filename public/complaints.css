@@ -632,7 +632,265 @@ input::placeholder, textarea::placeholder {
     .actions-header .btn {
         width: 100%;
     }
-    
+}
+
+/* ===========================
+   Customer Tab Navigation
+   =========================== */
+.customer-tabs {
+    display: flex;
+    gap: 2px;
+    max-width: 1000px;
+    margin: 0 auto;
+    padding: 0 1.5rem;
+    border-bottom: 1px solid var(--border);
+    background: var(--surface);
+}
+
+.cust-tab {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    padding: 14px 20px;
+    border: none;
+    border-bottom: 2px solid transparent;
+    background: none;
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.cust-tab:hover {
+    color: var(--text-main);
+    background: var(--background);
+}
+
+.cust-tab.active {
+    color: var(--primary);
+    border-bottom-color: var(--primary);
+}
+
+.cust-tab svg { flex-shrink: 0; }
+
+.cust-tab-badge {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    min-width: 20px;
+    height: 20px;
+    padding: 0 6px;
+    border-radius: 10px;
+    background: #ef4444;
+    color: #fff;
+    font-size: 11px;
+    font-weight: 700;
+}
+
+/* ===========================
+   Account Welcome Banner
+   =========================== */
+.account-welcome-banner {
+    display: flex;
+    align-items: center;
+    gap: 1.25rem;
+    padding: 1.5rem;
+    border-radius: var(--radius-md);
+    background: linear-gradient(135deg, var(--primary), #1e40af);
+    color: white;
+    margin-bottom: 1.25rem;
+}
+
+.account-avatar {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 56px;
+    height: 56px;
+    border-radius: 50%;
+    background: rgba(255,255,255,0.2);
+    font-family: var(--font-heading);
+    font-size: 1.5rem;
+    font-weight: 800;
+    color: #fff;
+    flex-shrink: 0;
+    backdrop-filter: blur(4px);
+}
+
+.account-banner-name {
+    font-family: var(--font-heading);
+    font-size: 1.25rem;
+    font-weight: 700;
+    margin: 0 0 2px;
+    color: #fff;
+}
+
+.account-banner-sub {
+    font-size: 0.8125rem;
+    opacity: 0.85;
+    margin: 0;
+}
+
+/* ===========================
+   Account Cards
+   =========================== */
+.account-card {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    padding: 1.25rem;
+    margin-bottom: 1rem;
+    box-shadow: var(--shadow-sm);
+}
+
+.account-card-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.account-card-title {
+    display: flex;
+    align-items: center;
+    gap: 0.5rem;
+    font-size: 0.9375rem;
+    font-weight: 700;
+    color: var(--text-main);
+    margin: 0;
+}
+
+.account-card-title svg {
+    color: var(--primary);
+    flex-shrink: 0;
+}
+
+/* Account Details Grid */
+.account-details-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+    gap: 1.25rem;
+}
+
+.account-detail {
+    display: flex;
+    flex-direction: column;
+    gap: 0.25rem;
+}
+
+.account-detail-label {
+    font-size: 0.6875rem;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: var(--text-muted);
+    font-weight: 600;
+}
+
+.account-detail-value {
+    font-size: 0.9375rem;
+    font-weight: 600;
+    color: var(--text-main);
+    overflow-wrap: break-word;
+}
+
+.account-detail-mono {
+    font-family: 'Courier New', monospace;
+    font-size: 0.8125rem;
+    word-break: break-all;
+}
+
+/* Status Pill */
+.status-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    padding: 2px 10px;
+    border-radius: 20px;
+    font-size: 0.75rem;
+    font-weight: 700;
+}
+
+.status-pill.active {
+    background: #dcfce7;
+    color: #166534;
+}
+
+.status-pill.inactive {
+    background: #fef2f2;
+    color: #991b1b;
+}
+
+/* Quick Actions */
+.account-actions-row {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+    gap: 0.75rem;
+}
+
+.account-action-btn {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 0.5rem;
+    padding: 1.25rem 1rem;
+    border: 1px solid var(--border);
+    border-radius: var(--radius-md);
+    background: var(--background);
+    font-family: var(--font-sans);
+    font-size: 0.8125rem;
+    font-weight: 600;
+    color: var(--text-main);
+    cursor: pointer;
+    transition: all 0.2s ease;
+}
+
+.account-action-btn svg {
+    color: var(--primary);
+}
+
+.account-action-btn:hover {
+    border-color: var(--primary);
+    background: var(--primary-light);
+    transform: translateY(-2px);
+    box-shadow: var(--shadow-md);
+}
+
+@media (max-width: 600px) {
+    .customer-tabs {
+        padding: 0 1rem;
+    }
+
+    .cust-tab {
+        padding: 12px 14px;
+        font-size: 0.75rem;
+    }
+
+    .account-welcome-banner {
+        padding: 1.25rem;
+    }
+
+    .account-avatar {
+        width: 44px;
+        height: 44px;
+        font-size: 1.2rem;
+    }
+
+    .account-banner-name {
+        font-size: 1.1rem;
+    }
+
+    .account-details-grid {
+        grid-template-columns: 1fr;
+    }
+
+    .account-actions-row {
+        grid-template-columns: 1fr;
+    }
+}    
     .info-grid {
         grid-template-columns: 1fr 1fr;
     }

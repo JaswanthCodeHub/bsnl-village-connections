@@ -107,16 +107,23 @@ async function handleLogout() {
 
 function populateInfo() {
   if (!customerInfo) return;
-  $('#customerWelcome').textContent = customerInfo.customerName;
-  $('#custInfoName').textContent = customerInfo.customerName;
+  const name = customerInfo.customerName || 'Customer';
+  $('#customerWelcome').textContent = name;
+  $('#custInfoName').textContent = name;
   $('#custInfoLandline').textContent = customerInfo.landlineNo;
   $('#custInfoArea').textContent = customerInfo.area;
   $('#custInfoUserId').textContent = customerInfo.userId;
+  // Banner
+  const avatar = $('#custAvatar');
+  if (avatar) avatar.textContent = name.charAt(0).toUpperCase();
+  const bannerName = $('#custBannerName');
+  if (bannerName) bannerName.textContent = name;
+  // Status pill
   const statusEl = $('#custInfoStatus');
   if (statusEl) {
     const s = (customerInfo.status || 'active').toLowerCase();
-    statusEl.textContent = s.charAt(0).toUpperCase() + s.slice(1);
-    statusEl.style.color = s === 'active' ? '#16a34a' : '#ef4444';
+    const isActive = s === 'active';
+    statusEl.innerHTML = `<span class="status-pill ${isActive ? 'active' : 'inactive'}">${isActive ? '● Active' : '● Inactive'}</span>`;
   }
 }
 
@@ -159,6 +166,16 @@ function renderComplaints(complaints) {
   const count = $('#complaintsCount');
 
   count.textContent = `${complaints.length} complaint${complaints.length === 1 ? '' : 's'}`;
+  // Update tab badge
+  const tabBadge = $('#complaintTabBadge');
+  if (tabBadge) {
+    if (complaints.length > 0) {
+      tabBadge.textContent = complaints.length;
+      tabBadge.style.display = 'inline-flex';
+    } else {
+      tabBadge.style.display = 'none';
+    }
+  }
 
   if (!complaints.length) {
     list.innerHTML = '';
@@ -369,11 +386,52 @@ $('#cancelRegisterBtn')?.addEventListener('click', () => $('#registerDialog').cl
 $('#closeDialogBtn')?.addEventListener('click', () => $('#complaintDialog').close());
 $('#cancelComplaintBtn')?.addEventListener('click', () => $('#complaintDialog').close());
 
-$('#newComplaintBtn').addEventListener('click', () => {
+$('#newComplaintBtn')?.addEventListener('click', () => {
   $('#complaintDialog').showModal();
   $('#complaintCategory').focus();
 });
 $('#submitComplaintBtn').addEventListener('click', submitComplaint);
+
+/* ===========================
+   Customer Tab Switching
+   =========================== */
+document.querySelectorAll('.cust-tab').forEach(tab => {
+  tab.addEventListener('click', () => {
+    document.querySelectorAll('.cust-tab').forEach(t => t.classList.remove('active'));
+    tab.classList.add('active');
+    const target = tab.dataset.tab;
+    const accountTab = $('#accountTab');
+    const complaintsTab = $('#complaintsTab');
+    if (accountTab) accountTab.style.display = target === 'account' ? 'block' : 'none';
+    if (complaintsTab) complaintsTab.style.display = target === 'complaints' ? 'block' : 'none';
+    if (target === 'complaints') loadComplaints();
+  });
+});
+
+/* ===========================
+   Quick Action Buttons
+   =========================== */
+$('#quickComplaintBtn')?.addEventListener('click', () => {
+  // Switch to complaints tab and open dialog
+  document.querySelectorAll('.cust-tab').forEach(t => t.classList.remove('active'));
+  $('#tabMyComplaints')?.classList.add('active');
+  const accountTab = $('#accountTab');
+  const complaintsTab = $('#complaintsTab');
+  if (accountTab) accountTab.style.display = 'none';
+  if (complaintsTab) complaintsTab.style.display = 'block';
+  loadComplaints();
+  setTimeout(() => {
+    $('#complaintDialog')?.showModal();
+    $('#complaintCategory')?.focus();
+  }, 200);
+});
+
+$('#quickEditBtn')?.addEventListener('click', openEditProfile);
+$('#quickPasswordBtn')?.addEventListener('click', () => {
+  openEditProfile();
+  // Focus password field after a tick
+  setTimeout(() => $('#editNewPassword')?.focus(), 300);
+});
 
 /* ===========================
    Init
