@@ -35,6 +35,11 @@ const WHATSAPP_APIKEY = process.env.WHATSAPP_APIKEY || '';
 // n8n Webhook Config
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || '';
 
+// Green API WhatsApp Config (FREE - No Python needed)
+const GREENAPI_ID = process.env.GREENAPI_ID || '';        // e.g. 1101827463
+const GREENAPI_TOKEN = process.env.GREENAPI_TOKEN || '';   // e.g. 2c80332c91834c8d8c...
+const ADMIN_WHATSAPP = process.env.ADMIN_WHATSAPP || '919030999657'; // Admin phone number
+
 const FIELDS = ['area', 'vlanNo', 'customerName', 'landlineNo', 'userId', 'notes'];
 
 const HEADER_ALIASES = {
@@ -148,6 +153,35 @@ async function sendWhatsAppAlert(complaint) {
     console.log('WhatsApp alert sent successfully.');
   } catch (err) {
     console.error('WhatsApp alert failed:', err.message);
+  }
+}
+
+// Send WhatsApp via Green API (FREE - works on Vercel 24/7)
+async function sendGreenApiWhatsApp(complaint) {
+  if (!GREENAPI_ID || !GREENAPI_TOKEN) return;
+  try {
+    const time = new Date(complaint.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+    const msg = `🚨 *New BSNL Complaint Received!*\n\n` +
+      `👤 *Customer:* ${complaint.customerName}\n` +
+      `📞 *Landline:* ${complaint.customerId}\n` +
+      `📍 *Area:* ${complaint.area}\n` +
+      `📋 *Category:* ${complaint.category}\n` +
+      `📝 *Issue:* ${complaint.description.slice(0, 300)}\n` +
+      `🕐 *Time:* ${time}`;
+
+    const url = `https://api.green-api.com/waInstance${GREENAPI_ID}/sendMessage/${GREENAPI_TOKEN}`;
+    const res = await fetch(url, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        chatId: `${ADMIN_WHATSAPP}@c.us`,
+        message: msg
+      })
+    });
+    const result = await res.json();
+    console.log('Green API WhatsApp sent:', result.idMessage || 'OK');
+  } catch (err) {
+    console.error('Green API WhatsApp failed:', err.message);
   }
 }
 
@@ -827,6 +861,7 @@ app.post('/api/customer/complaints', requireCustomerAuth, async (req, res, next)
     // Send alerts to admin (fire-and-forget, don't block response)
     sendTelegramAlert(complaint).catch(() => {});
     sendWhatsAppAlert(complaint).catch(() => {});
+    sendGreenApiWhatsApp(complaint).catch(() => {});
     sendN8nWebhook(complaint).catch(() => {});
     res.status(201).json({ complaint: stripId(complaint) });
   } catch (error) { next(error); }
