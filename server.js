@@ -28,6 +28,10 @@ const USER_ID_SUFFIX = '_sid@ftth.bsnl.in';
 const TELEGRAM_BOT_TOKEN = process.env.TELEGRAM_BOT_TOKEN || '';
 const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 
+// WhatsApp CallMeBot Alert Config (FREE)
+const WHATSAPP_PHONE = process.env.WHATSAPP_PHONE || '';  // e.g. 919030999657
+const WHATSAPP_APIKEY = process.env.WHATSAPP_APIKEY || '';
+
 const FIELDS = ['area', 'vlanNo', 'customerName', 'landlineNo', 'userId', 'notes'];
 
 const HEADER_ALIASES = {
@@ -120,6 +124,27 @@ async function sendTelegramAlert(complaint) {
     });
   } catch (err) {
     console.error('Telegram alert failed:', err.message);
+  }
+}
+
+// Send WhatsApp notification via CallMeBot (FREE)
+async function sendWhatsAppAlert(complaint) {
+  if (!WHATSAPP_PHONE || !WHATSAPP_APIKEY) return;
+  try {
+    const time = new Date(complaint.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
+    const msg = `🚨 *New Complaint Received*\n\n` +
+      `👤 Customer: ${complaint.customerName}\n` +
+      `📞 Landline: ${complaint.customerId}\n` +
+      `📍 Area: ${complaint.area}\n` +
+      `📋 Category: ${complaint.category}\n` +
+      `📝 Issue: ${complaint.description.slice(0, 200)}\n` +
+      `🕐 Time: ${time}`;
+
+    const url = `https://api.callmebot.com/whatsapp.php?phone=${WHATSAPP_PHONE}&text=${encodeURIComponent(msg)}&apikey=${WHATSAPP_APIKEY}`;
+    await fetch(url);
+    console.log('WhatsApp alert sent successfully.');
+  } catch (err) {
+    console.error('WhatsApp alert failed:', err.message);
   }
 }
 
@@ -770,8 +795,9 @@ app.post('/api/customer/complaints', requireCustomerAuth, async (req, res, next)
       resolvedAt: null
     };
     await complaintsCol.insertOne(complaint);
-    // Send Telegram alert to admin (fire-and-forget, don't block response)
+    // Send alerts to admin (fire-and-forget, don't block response)
     sendTelegramAlert(complaint).catch(() => {});
+    sendWhatsAppAlert(complaint).catch(() => {});
     res.status(201).json({ complaint: stripId(complaint) });
   } catch (error) { next(error); }
 });
