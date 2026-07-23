@@ -338,7 +338,7 @@ input::placeholder, textarea::placeholder {
 
 .info-grid {
     display: grid;
-    grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
     gap: 1.5rem;
 }
 
@@ -346,6 +346,7 @@ input::placeholder, textarea::placeholder {
     display: flex;
     flex-direction: column;
     gap: 0.25rem;
+    min-width: 0; /* Prevents grid item from expanding past cell width */
 }
 
 .info-label {
@@ -360,6 +361,11 @@ input::placeholder, textarea::placeholder {
     font-size: 1rem;
     font-weight: 600;
     color: var(--text-main);
+    overflow-wrap: break-word;
+}
+
+#custInfoUserId {
+    word-break: break-all;
 }
 
 /* Actions Section */
