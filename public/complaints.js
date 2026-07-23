@@ -219,24 +219,81 @@ async function submitComplaint() {
 }
 
 /* ===========================
+   Customer Registration
+   =========================== */
+async function handleRegister(e) {
+  e.preventDefault();
+  const area = $('#regArea').value;
+  const customerName = $('#regCustomerName').value.trim();
+  const landlineNo = $('#regLandlineNo').value.trim();
+  const userIdPrefix = $('#regUserIdPrefix').value.trim();
+  const btn = $('#submitRegisterBtn');
+
+  if (!area) {
+    showToast('Please select your area/village.', true);
+    return;
+  }
+  if (!customerName) {
+    showToast('Please enter your name.', true);
+    return;
+  }
+  if (!landlineNo) {
+    showToast('Please enter your landline number.', true);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Creating Account…';
+
+  try {
+    const res = await fetch('/api/customer/register', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ area, customerName, landlineNo, userIdPrefix })
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Registration failed');
+
+    $('#registerDialog').close();
+    customerInfo = data.customer;
+    populateInfo();
+    showToast('Account created successfully! Welcome, ' + customerInfo.customerName + '!');
+    showDashboard();
+    loadComplaints();
+  } catch (err) {
+    showToast(err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Create Account & Login';
+  }
+}
+
+/* ===========================
    Event Listeners
    =========================== */
 $('#customerLoginForm').addEventListener('submit', handleLogin);
+$('#customerRegisterForm')?.addEventListener('submit', handleRegister);
 $('#customerLogoutBtn').addEventListener('click', handleLogout);
+
+$('#openRegisterModalBtn')?.addEventListener('click', (e) => {
+  e.preventDefault();
+  $('#registerDialog').showModal();
+  $('#regArea').focus();
+});
+
+$('#closeRegisterDialogBtn')?.addEventListener('click', () => $('#registerDialog').close());
+$('#cancelRegisterBtn')?.addEventListener('click', () => $('#registerDialog').close());
+$('#closeDialogBtn')?.addEventListener('click', () => $('#complaintDialog').close());
+$('#cancelComplaintBtn')?.addEventListener('click', () => $('#complaintDialog').close());
+
 $('#newComplaintBtn').addEventListener('click', () => {
   $('#complaintDialog').showModal();
   $('#complaintCategory').focus();
 });
 $('#submitComplaintBtn').addEventListener('click', submitComplaint);
 
-// Close dialog on cancel
-$('#complaintDialog').addEventListener('click', (e) => {
-  if (e.target.matches('[value="cancel"]')) {
-    $('#complaintDialog').close();
-  }
-});
-
 /* ===========================
    Init
    =========================== */
 checkAuth();
+

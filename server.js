@@ -519,6 +519,62 @@ function requireCustomerAuth(req, res, next) {
   res.status(401).json({ error: 'Please login again.' });
 }
 
+// Customer registration / account creation
+app.post('/api/customer/register', async (req, res, next) => {
+  try {
+    const { area, customerName, landlineNo, userIdPrefix, notes } = req.body;
+    if (!area || !area.trim()) return res.status(400).json({ error: 'Please select your area/village.' });
+    if (!customerName || !customerName.trim()) return res.status(400).json({ error: 'Customer name is required.' });
+    if (!landlineNo) return res.status(400).json({ error: 'Landline number is required.' });
+
+    const cleanedLandline = landlineNo.replace(/\D/g, '');
+    if (cleanedLandline.length !== 11 || !cleanedLandline.startsWith(LANDLINE_PREFIX)) {
+      return res.status(400).json({ error: 'Enter a valid 11-digit landline number starting with 08643.' });
+    }
+    const formattedLandline = `${cleanedLandline.slice(0, 5)}-${cleanedLandline.slice(5)}`;
+
+    const connectionsCol = await getCollection();
+    const existing = await connectionsCol.findOne({ landlineNo: formattedLandline });
+    if (existing) {
+      return res.status(400).json({ error: 'This landline number is already registered! Please login directly.' });
+    }
+
+    const prefix = (userIdPrefix || '').trim().replace(/_?sid@.*$/i, '') || cleanedLandline.slice(-5);
+    const userId = `${prefix}${USER_ID_SUFFIX}`;
+
+    const newCustomer = {
+      id: crypto.randomUUID(),
+      area: cleanText(area, 100),
+      vlanNo: '100',
+      customerName: cleanText(customerName, 200),
+      landlineNo: formattedLandline,
+      userId: userId,
+      notes: cleanText(notes || 'Self-registered customer', 500),
+      status: 'active',
+      createdAt: new Date().toISOString(),
+      updatedAt: new Date().toISOString()
+    };
+
+    await connectionsCol.insertOne(newCustomer);
+
+    // Auto-login the new customer
+    const token = generateCustomerToken(formattedLandline);
+    const isProd = process.env.NODE_ENV === 'production';
+    res.setHeader('Set-Cookie', `customer_token=${token}; Path=/; HttpOnly; Max-Age=${CUSTOMER_SESSION_MAX_AGE}; SameSite=Strict${isProd ? '; Secure' : ''}`);
+
+    res.status(201).json({
+      success: true,
+      customer: {
+        customerName: newCustomer.customerName,
+        landlineNo: newCustomer.landlineNo,
+        area: newCustomer.area,
+        userId: newCustomer.userId
+      },
+      sessionMaxAge: CUSTOMER_SESSION_MAX_AGE
+    });
+  } catch (error) { next(error); }
+});
+
 // Customer login
 app.post('/api/customer/login', async (req, res, next) => {
   try {
