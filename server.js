@@ -32,6 +32,9 @@ const TELEGRAM_CHAT_ID = process.env.TELEGRAM_CHAT_ID || '';
 const WHATSAPP_PHONE = process.env.WHATSAPP_PHONE || '';  // e.g. 919030999657
 const WHATSAPP_APIKEY = process.env.WHATSAPP_APIKEY || '';
 
+// n8n Webhook Config
+const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || '';
+
 const FIELDS = ['area', 'vlanNo', 'customerName', 'landlineNo', 'userId', 'notes'];
 
 const HEADER_ALIASES = {
@@ -145,6 +148,32 @@ async function sendWhatsAppAlert(complaint) {
     console.log('WhatsApp alert sent successfully.');
   } catch (err) {
     console.error('WhatsApp alert failed:', err.message);
+  }
+}
+
+// Send Webhook to n8n Workflow
+async function sendN8nWebhook(complaint) {
+  if (!N8N_WEBHOOK_URL) return;
+  try {
+    const payload = {
+      event: 'complaint_created',
+      complaintId: complaint.id,
+      customerName: complaint.customerName,
+      landlineNo: complaint.customerId,
+      area: complaint.area,
+      userId: complaint.userId,
+      category: complaint.category,
+      description: complaint.description,
+      createdAt: complaint.createdAt
+    };
+    await fetch(N8N_WEBHOOK_URL, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    console.log('n8n Webhook triggered successfully.');
+  } catch (err) {
+    console.error('n8n Webhook trigger failed:', err.message);
   }
 }
 
@@ -798,6 +827,7 @@ app.post('/api/customer/complaints', requireCustomerAuth, async (req, res, next)
     // Send alerts to admin (fire-and-forget, don't block response)
     sendTelegramAlert(complaint).catch(() => {});
     sendWhatsAppAlert(complaint).catch(() => {});
+    sendN8nWebhook(complaint).catch(() => {});
     res.status(201).json({ complaint: stripId(complaint) });
   } catch (error) { next(error); }
 });
