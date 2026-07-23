@@ -112,6 +112,12 @@ function populateInfo() {
   $('#custInfoLandline').textContent = customerInfo.landlineNo;
   $('#custInfoArea').textContent = customerInfo.area;
   $('#custInfoUserId').textContent = customerInfo.userId;
+  const statusEl = $('#custInfoStatus');
+  if (statusEl) {
+    const s = (customerInfo.status || 'active').toLowerCase();
+    statusEl.textContent = s.charAt(0).toUpperCase() + s.slice(1);
+    statusEl.style.color = s === 'active' ? '#16a34a' : '#ef4444';
+  }
 }
 
 /* ===========================
@@ -275,11 +281,82 @@ async function handleRegister(e) {
 }
 
 /* ===========================
+   Edit Profile
+   =========================== */
+function openEditProfile() {
+  if (!customerInfo) return;
+  $('#editName').value = customerInfo.customerName || '';
+  $('#editArea').value = customerInfo.area || '';
+  $('#editLandline').value = customerInfo.landlineNo || '';
+  // Extract userId prefix (remove _sid@ftth.bsnl.in)
+  const uid = (customerInfo.userId || '').replace(/_?sid@.*$/i, '');
+  $('#editUserId').value = uid;
+  $('#editNewPassword').value = '';
+  $('#editConfirmPassword').value = '';
+  $('#editProfileDialog').showModal();
+  $('#editName').focus();
+}
+
+async function handleEditProfile(e) {
+  e.preventDefault();
+  const btn = $('#saveProfileBtn');
+  const customerName = $('#editName').value.trim();
+  const area = $('#editArea').value;
+  const userIdPrefix = $('#editUserId').value.trim();
+  const newPassword = $('#editNewPassword').value;
+  const confirmPassword = $('#editConfirmPassword').value;
+
+  if (!customerName) {
+    showToast('Name is required.', true);
+    return;
+  }
+  if (newPassword && newPassword !== confirmPassword) {
+    showToast('Passwords do not match!', true);
+    return;
+  }
+  if (newPassword && newPassword.length < 4) {
+    showToast('Password must be at least 4 characters.', true);
+    return;
+  }
+
+  btn.disabled = true;
+  btn.textContent = 'Saving…';
+
+  try {
+    const body = { customerName, area, userIdPrefix };
+    if (newPassword) body.newPassword = newPassword;
+
+    const res = await fetch('/api/customer/profile', {
+      method: 'PUT',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(body)
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Update failed');
+
+    customerInfo = data.customer;
+    populateInfo();
+    $('#editProfileDialog').close();
+    showToast('Profile updated successfully!');
+  } catch (err) {
+    showToast(err.message, true);
+  } finally {
+    btn.disabled = false;
+    btn.textContent = 'Save Changes';
+  }
+}
+
+/* ===========================
    Event Listeners
    =========================== */
 $('#customerLoginForm').addEventListener('submit', handleLogin);
 $('#customerRegisterForm')?.addEventListener('submit', handleRegister);
+$('#editProfileForm')?.addEventListener('submit', handleEditProfile);
 $('#customerLogoutBtn').addEventListener('click', handleLogout);
+
+$('#editProfileBtn')?.addEventListener('click', openEditProfile);
+$('#closeEditProfileBtn')?.addEventListener('click', () => $('#editProfileDialog').close());
+$('#cancelEditProfileBtn')?.addEventListener('click', () => $('#editProfileDialog').close());
 
 $('#openRegisterModalBtn')?.addEventListener('click', (e) => {
   e.preventDefault();
@@ -302,4 +379,3 @@ $('#submitComplaintBtn').addEventListener('click', submitComplaint);
    Init
    =========================== */
 checkAuth();
-

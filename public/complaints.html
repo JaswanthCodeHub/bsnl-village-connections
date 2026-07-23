@@ -22,8 +22,8 @@
         <main class="login-card">
             <div class="login-header">
                 <span class="brand-mark">B</span>
-                <h1 class="login-title">BSNL Complaint Portal</h1>
-                <p class="login-subtitle">Register and track your service complaints</p>
+                <h1 class="login-title">BSNL Customer Portal</h1>
+                <p class="login-subtitle">View your account, edit details & book complaints</p>
             </div>
             
             <form id="customerLoginForm" class="login-form">
@@ -59,7 +59,7 @@
         <header class="topbar">
             <div class="topbar-left">
                 <span class="brand-mark">B</span>
-                <span class="topbar-title">BSNL Complaint Portal</span>
+                <span class="topbar-title">BSNL Customer Portal</span>
             </div>
             <div class="topbar-right">
                 <span id="customerWelcome" class="welcome-text">Welcome, Customer</span>
@@ -68,8 +68,15 @@
         </header>
 
         <main class="dashboard-main">
-            <!-- Info Bar -->
+            <!-- Info Bar with Edit Button -->
             <section class="info-bar card" aria-label="Customer Information">
+                <div class="info-bar-header">
+                    <h2 class="info-bar-title">Your Account Details</h2>
+                    <button id="editProfileBtn" class="btn btn-outline btn-sm" type="button">
+                        <svg xmlns="http://www.w3.org/2000/svg" width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" style="margin-right:4px;"><path d="M11 4H4a2 2 0 0 0-2 2v14a2 2 0 0 0 2 2h14a2 2 0 0 0 2-2v-7"/><path d="M18.5 2.5a2.121 2.121 0 0 1 3 3L12 15l-4 1 1-4 9.5-9.5z"/></svg>
+                        Edit Details
+                    </button>
+                </div>
                 <div class="info-grid">
                     <div class="info-item">
                         <span class="info-label">Customer Name</span>
@@ -80,18 +87,22 @@
                         <span id="custInfoLandline" class="info-value">--</span>
                     </div>
                     <div class="info-item">
-                        <span class="info-label">Area</span>
+                        <span class="info-label">Area / Route</span>
                         <span id="custInfoArea" class="info-value">--</span>
                     </div>
                     <div class="info-item">
                         <span class="info-label">User ID</span>
                         <span id="custInfoUserId" class="info-value">--</span>
                     </div>
+                    <div class="info-item">
+                        <span class="info-label">Status</span>
+                        <span id="custInfoStatus" class="info-value" style="color:#16a34a; font-weight:700;">Active</span>
+                    </div>
                 </div>
             </section>
 
             <!-- Actions Section -->
-            <section class="actions-section" aria-label="Complaint Actions">
+            <section class="actions-section" aria-label="Actions">
                 <div class="actions-header">
                     <h2 class="section-title">Your Complaints <span id="complaintsCount" class="badge">0</span></h2>
                     <button id="newComplaintBtn" class="btn btn-primary">
@@ -103,7 +114,6 @@
 
             <!-- Complaints List -->
             <section id="complaintsList" class="complaints-list" aria-label="List of Complaints">
-                <!-- Empty state -->
                 <div id="complaintsEmpty" class="empty-state">
                     <div class="empty-icon">
                         <svg xmlns="http://www.w3.org/2000/svg" width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"></path><polyline points="14 2 14 8 20 8"></polyline><line x1="16" y1="13" x2="8" y2="13"></line><line x1="16" y1="17" x2="8" y2="17"></line><polyline points="10 9 9 9 8 9"></polyline></svg>
@@ -111,7 +121,6 @@
                     <h3>No complaints yet</h3>
                     <p>If you face any issue, click Book New Complaint.</p>
                 </div>
-                <!-- Complaint cards will be rendered here by JS -->
             </section>
         </main>
     </div>
@@ -155,7 +164,77 @@
         </div>
     </dialog>
 
-    <!-- 3b. Register Account Dialog -->
+    <!-- 3b. Edit Profile Dialog -->
+    <dialog id="editProfileDialog" class="modal" aria-labelledby="editProfileTitle">
+        <div class="modal-content">
+            <header class="modal-header">
+                <h2 id="editProfileTitle">Edit Your Details</h2>
+                <button type="button" class="close-btn" id="closeEditProfileBtn" aria-label="Close dialog">&times;</button>
+            </header>
+            
+            <form id="editProfileForm">
+                <div class="modal-body">
+                    <div class="form-group">
+                        <label for="editName">Customer Name</label>
+                        <input type="text" id="editName" name="customerName" placeholder="Enter your full name" required>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editArea">Area / Route</label>
+                        <div class="select-wrapper">
+                            <select id="editArea" name="area" required>
+                                <option value="" disabled>Select area</option>
+                                <option value="Garalapadu">Garalapadu</option>
+                                <option value="Pedavaripalem">Pedavaripalem</option>
+                                <option value="Kommuru">Kommuru</option>
+                                <option value="OLT to Parchur Side">OLT to Parchur Side</option>
+                                <option value="PNP Sai Temple to Nagulapadu">PNP Sai Temple to Nagulapadu</option>
+                                <option value="OLT to Varagani">OLT to Varagani</option>
+                                <option value="PNP Bodaraya to Kommuru">PNP Bodaraya to Kommuru</option>
+                                <option value="Bankers">Bankers</option>
+                                <option value="Schools">Schools</option>
+                                <option value="Other">Other</option>
+                            </select>
+                            <svg class="select-icon" xmlns="http://www.w3.org/2000/svg" width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><polyline points="6 9 12 15 18 9"></polyline></svg>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label>Landline Number <span style="color:#64748b; font-weight:400;">(cannot change)</span></label>
+                        <input type="text" id="editLandline" disabled style="background:#f1f5f9; color:#64748b;">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editUserId">User ID Prefix</label>
+                        <div class="input-wrapper" style="display:flex; align-items:center;">
+                            <input type="text" id="editUserId" placeholder="e.g. 12345" style="border-radius: var(--radius-sm) 0 0 var(--radius-sm); border-right:none;">
+                            <span style="background:#e2e8f0; padding:0.75rem 0.6rem; font-size:0.8rem; font-weight:600; color:#475569; border:1px solid var(--border); border-radius:0 var(--radius-sm) var(--radius-sm) 0; white-space:nowrap;">_sid@ftth.bsnl.in</span>
+                        </div>
+                    </div>
+
+                    <hr style="border:none; border-top:1px solid var(--border); margin: 1rem 0;">
+                    <p style="font-size:0.8rem; color:var(--text-muted); margin-bottom:0.75rem;">Change Password (leave blank to keep current)</p>
+
+                    <div class="form-group">
+                        <label for="editNewPassword">New Password</label>
+                        <input type="password" id="editNewPassword" placeholder="Enter new password" autocomplete="new-password">
+                    </div>
+
+                    <div class="form-group">
+                        <label for="editConfirmPassword">Confirm New Password</label>
+                        <input type="password" id="editConfirmPassword" placeholder="Re-enter new password" autocomplete="new-password">
+                    </div>
+                </div>
+                
+                <footer class="modal-footer">
+                    <button type="button" id="cancelEditProfileBtn" class="btn btn-text">Cancel</button>
+                    <button type="submit" id="saveProfileBtn" class="btn btn-primary">Save Changes</button>
+                </footer>
+            </form>
+        </div>
+    </dialog>
+
+    <!-- 3c. Register Account Dialog -->
     <dialog id="registerDialog" class="modal" aria-labelledby="registerModalTitle">
         <div class="modal-content">
             <header class="modal-header">

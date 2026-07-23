@@ -611,7 +611,8 @@ app.post('/api/customer/login', async (req, res, next) => {
         customerName: customer.customerName,
         landlineNo: customer.landlineNo,
         area: customer.area,
-        userId: customer.userId
+        userId: customer.userId,
+        status: customer.status || 'active'
       },
       sessionMaxAge: CUSTOMER_SESSION_MAX_AGE
     });
@@ -633,7 +634,8 @@ app.get('/api/customer/auth-check', async (req, res, next) => {
         customerName: customer.customerName,
         landlineNo: customer.landlineNo,
         area: customer.area,
-        userId: customer.userId
+        userId: customer.userId,
+        status: customer.status || 'active'
       },
       sessionMaxAge: CUSTOMER_SESSION_MAX_AGE
     });
@@ -644,6 +646,49 @@ app.get('/api/customer/auth-check', async (req, res, next) => {
 app.post('/api/customer/logout', (_req, res) => {
   res.setHeader('Set-Cookie', 'customer_token=; Path=/; HttpOnly; Max-Age=0; SameSite=Strict');
   res.json({ success: true });
+});
+
+// Customer profile update
+app.put('/api/customer/profile', requireCustomerAuth, async (req, res, next) => {
+  try {
+    const { customerName, area, userIdPrefix, newPassword } = req.body;
+    const connectionsCol = await getCollection();
+    const customer = await connectionsCol.findOne({ landlineNo: req.customerLandline });
+    if (!customer) return res.status(404).json({ error: 'Account not found.' });
+
+    const updates = { updatedAt: new Date().toISOString() };
+
+    if (customerName && customerName.trim()) {
+      updates.customerName = cleanText(customerName, 200);
+    }
+    if (area && area.trim()) {
+      updates.area = cleanText(area, 100);
+    }
+    if (typeof userIdPrefix === 'string') {
+      const prefix = userIdPrefix.trim().replace(/_?sid@.*$/i, '') || customer.landlineNo.replace(/\D/g, '').slice(-5);
+      updates.userId = `${prefix}${USER_ID_SUFFIX}`;
+    }
+    if (newPassword && newPassword.trim()) {
+      if (newPassword.trim().length < 4) {
+        return res.status(400).json({ error: 'Password must be at least 4 characters.' });
+      }
+      updates.customerPassword = crypto.createHash('sha256').update(newPassword.trim()).digest('hex');
+    }
+
+    await connectionsCol.updateOne({ _id: customer._id }, { $set: updates });
+
+    const updated = await connectionsCol.findOne({ landlineNo: req.customerLandline });
+    res.json({
+      success: true,
+      customer: {
+        customerName: updated.customerName,
+        landlineNo: updated.landlineNo,
+        area: updated.area,
+        userId: updated.userId,
+        status: updated.status || 'active'
+      }
+    });
+  } catch (error) { next(error); }
 });
 
 /* ===========================

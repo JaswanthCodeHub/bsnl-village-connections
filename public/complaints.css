@@ -321,6 +321,21 @@ input::placeholder, textarea::placeholder {
     background: linear-gradient(to right, var(--surface), var(--primary-light));
 }
 
+.info-bar-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+    padding-bottom: 0.75rem;
+    border-bottom: 1px solid var(--border);
+}
+
+.info-bar-title {
+    font-size: 1rem;
+    font-weight: 700;
+    color: var(--text-main);
+}
+
 .info-grid {
     display: grid;
     grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
