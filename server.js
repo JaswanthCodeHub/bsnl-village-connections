@@ -522,7 +522,7 @@ function requireCustomerAuth(req, res, next) {
 // Customer registration / account creation
 app.post('/api/customer/register', async (req, res, next) => {
   try {
-    const { area, customerName, landlineNo, userIdPrefix, notes } = req.body;
+    const { area, customerName, landlineNo, userIdPrefix, password, notes } = req.body;
     if (!area || !area.trim()) return res.status(400).json({ error: 'Please select your area/village.' });
     if (!customerName || !customerName.trim()) return res.status(400).json({ error: 'Customer name is required.' });
     if (!landlineNo) return res.status(400).json({ error: 'Landline number is required.' });
@@ -539,6 +539,11 @@ app.post('/api/customer/register', async (req, res, next) => {
       return res.status(400).json({ error: 'This landline number is already registered! Please login directly.' });
     }
 
+    // Password: use provided or default to last 6 digits
+    const customerPassword = (password && password.trim()) ? password.trim() : cleanedLandline.slice(-6);
+    if (customerPassword.length < 4) return res.status(400).json({ error: 'Password must be at least 4 characters.' });
+    const hashedPassword = crypto.createHash('sha256').update(customerPassword).digest('hex');
+
     const prefix = (userIdPrefix || '').trim().replace(/_?sid@.*$/i, '') || cleanedLandline.slice(-5);
     const userId = `${prefix}${USER_ID_SUFFIX}`;
 
@@ -549,6 +554,7 @@ app.post('/api/customer/register', async (req, res, next) => {
       customerName: cleanText(customerName, 200),
       landlineNo: formattedLandline,
       userId: userId,
+      customerPassword: hashedPassword,
       notes: cleanText(notes || 'Self-registered customer', 500),
       status: 'active',
       createdAt: new Date().toISOString(),
@@ -557,7 +563,7 @@ app.post('/api/customer/register', async (req, res, next) => {
 
     await connectionsCol.insertOne(newCustomer);
 
-    // Auto-login the new customer
+    // Auto-login
     const token = generateCustomerToken(formattedLandline);
     const isProd = process.env.NODE_ENV === 'production';
     res.setHeader('Set-Cookie', `customer_token=${token}; Path=/; HttpOnly; Max-Age=${CUSTOMER_SESSION_MAX_AGE}; SameSite=Strict${isProd ? '; Secure' : ''}`);
@@ -578,8 +584,9 @@ app.post('/api/customer/register', async (req, res, next) => {
 // Customer login
 app.post('/api/customer/login', async (req, res, next) => {
   try {
-    const { landlineNo } = req.body;
+    const { landlineNo, password } = req.body;
     if (!landlineNo) return res.status(400).json({ error: 'Landline number is required.' });
+    if (!password) return res.status(400).json({ error: 'Password is required.' });
     const cleaned = landlineNo.replace(/\D/g, '');
     if (cleaned.length !== 11 || !cleaned.startsWith(LANDLINE_PREFIX)) {
       return res.status(400).json({ error: 'Enter a valid 11-digit landline number starting with 08643.' });
@@ -589,6 +596,11 @@ app.post('/api/customer/login', async (req, res, next) => {
     const customer = await connectionsCol.findOne({ landlineNo: formatted });
     if (!customer) {
       return res.status(404).json({ error: 'This landline number is not registered. Please contact your BSNL office.' });
+    }
+    // Verify password
+    const hashedInput = crypto.createHash('sha256').update(password).digest('hex');
+    if (!customer.customerPassword || customer.customerPassword !== hashedInput) {
+      return res.status(401).json({ error: 'Incorrect password. Your default password is the last 6 digits of your landline number.' });
     }
     const token = generateCustomerToken(formatted);
     const isProd = process.env.NODE_ENV === 'production';

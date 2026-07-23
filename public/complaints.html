@@ -34,10 +34,18 @@
                             <path d="M22 16.92v3a2 2 0 0 1-2.18 2 19.79 19.79 0 0 1-8.63-3.07 19.5 19.5 0 0 1-6-6 19.79 19.79 0 0 1-3.07-8.67A2 2 0 0 1 4.11 2h3a2 2 0 0 1 2 1.72 12.84 12.84 0 0 0 .7 2.81 2 2 0 0 1-.45 2.11L8.09 9.91a16 16 0 0 0 6 6l1.27-1.27a2 2 0 0 1 2.11-.45 12.84 12.84 0 0 0 2.81.7A2 2 0 0 1 22 16.92z"></path>
                         </svg>
                         <input type="tel" id="customerLandline" name="landline" placeholder="08643-XXXXXX" required autocomplete="tel">
+                </div>
+                <div class="form-group">
+                    <label for="customerPassword">Password</label>
+                    <div class="input-wrapper">
+                        <svg class="input-icon" xmlns="http://www.w3.org/2000/svg" width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                            <rect x="3" y="11" width="18" height="11" rx="2" ry="2"></rect><path d="M7 11V7a5 5 0 0 1 10 0v4"></path>
+                        </svg>
+                        <input type="password" id="customerPassword" name="password" placeholder="Enter your password" required autocomplete="current-password" style="padding-left: 2.5rem;">
                     </div>
                 </div>
                 <button type="submit" id="customerLoginBtn" class="btn btn-primary btn-block">Login</button>
-                <p class="form-hint">Use your registered BSNL landline number</p>
+                <p class="form-hint">Default password: last 6 digits of your landline number</p>
                 <p class="form-hint" style="margin-top: 14px; font-size: 0.85rem;">
                     Don't have an account? <a href="#" id="openRegisterModalBtn" style="color: var(--primary); font-weight: 600; text-decoration: underline;">Create an account</a>
                 </p>
@@ -197,6 +205,11 @@
                             <input type="text" id="regUserIdPrefix" placeholder="e.g. 12345" style="border-radius: var(--radius-sm) 0 0 var(--radius-sm); border-right:none;">
                             <span style="background:#e2e8f0; padding:0.75rem 0.6rem; font-size:0.8rem; font-weight:600; color:#475569; border:1px solid var(--border); border-radius:0 var(--radius-sm) var(--radius-sm) 0; white-space:nowrap;">_sid@ftth.bsnl.in</span>
                         </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label for="regPassword">Password <span style="color:#64748b; font-weight:400;">(leave blank = last 6 digits of landline)</span></label>
+                        <input type="password" id="regPassword" name="password" placeholder="Create a password (optional)" autocomplete="new-password">
                     </div>
                 </div>
                 

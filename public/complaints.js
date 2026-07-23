@@ -58,9 +58,14 @@ async function handleLogin(e) {
   e.preventDefault();
   const btn = $('#customerLoginBtn');
   const landlineNo = $('#customerLandline').value.trim();
+  const password = $('#customerPassword').value;
 
   if (!landlineNo) {
     showToast('Please enter your landline number.', true);
+    return;
+  }
+  if (!password) {
+    showToast('Please enter your password.', true);
     return;
   }
 
@@ -71,7 +76,7 @@ async function handleLogin(e) {
     const res = await fetch('/api/customer/login', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ landlineNo })
+      body: JSON.stringify({ landlineNo, password })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Login failed');
@@ -227,6 +232,7 @@ async function handleRegister(e) {
   const customerName = $('#regCustomerName').value.trim();
   const landlineNo = $('#regLandlineNo').value.trim();
   const userIdPrefix = $('#regUserIdPrefix').value.trim();
+  const password = $('#regPassword')?.value?.trim() || '';
   const btn = $('#submitRegisterBtn');
 
   if (!area) {
@@ -249,7 +255,7 @@ async function handleRegister(e) {
     const res = await fetch('/api/customer/register', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({ area, customerName, landlineNo, userIdPrefix })
+      body: JSON.stringify({ area, customerName, landlineNo, userIdPrefix, password })
     });
     const data = await res.json();
     if (!res.ok) throw new Error(data.error || 'Registration failed');
