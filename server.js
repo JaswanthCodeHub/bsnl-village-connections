@@ -158,7 +158,10 @@ async function sendWhatsAppAlert(complaint) {
 
 // Send WhatsApp via Green API (FREE - works on Vercel 24/7)
 async function sendGreenApiWhatsApp(complaint) {
-  if (!GREENAPI_ID || !GREENAPI_TOKEN) return;
+  if (!GREENAPI_ID || !GREENAPI_TOKEN) {
+    console.log('Green API skipped: GREENAPI_ID or GREENAPI_TOKEN not set.');
+    return;
+  }
   try {
     const time = new Date(complaint.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
     const msg = `🚨 *New BSNL Complaint Received!*\n\n` +
@@ -169,17 +172,21 @@ async function sendGreenApiWhatsApp(complaint) {
       `📝 *Issue:* ${complaint.description.slice(0, 300)}\n` +
       `🕐 *Time:* ${time}`;
 
+    const chatId = `${ADMIN_WHATSAPP}@c.us`;
     const url = `https://api.green-api.com/waInstance${GREENAPI_ID}/sendMessage/${GREENAPI_TOKEN}`;
+    console.log(`Green API: Sending to ${chatId} via waInstance${GREENAPI_ID}`);
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        chatId: `${ADMIN_WHATSAPP}@c.us`,
-        message: msg
-      })
+      body: JSON.stringify({ chatId, message: msg })
     });
     const result = await res.json();
-    console.log('Green API WhatsApp sent:', result.idMessage || 'OK');
+    if (res.ok && result.idMessage) {
+      console.log('Green API WhatsApp sent:', result.idMessage);
+    } else {
+      console.error('Green API WhatsApp error response:', JSON.stringify(result));
+    }
+    return result;
   } catch (err) {
     console.error('Green API WhatsApp failed:', err.message);
   }
@@ -954,6 +961,34 @@ app.put('/api/complaints/:id/status', requireAuth, async (req, res, next) => {
 /* ===========================
    Error Handler
    =========================== */
+// Test WhatsApp Alert (for debugging)
+app.get('/api/test-whatsapp', requireAuth, async (req, res) => {
+  const config = {
+    GREENAPI_ID: GREENAPI_ID ? `${GREENAPI_ID.slice(0, 4)}...` : 'NOT SET',
+    GREENAPI_TOKEN: GREENAPI_TOKEN ? `${GREENAPI_TOKEN.slice(0, 8)}...` : 'NOT SET',
+    ADMIN_WHATSAPP: ADMIN_WHATSAPP || 'NOT SET'
+  };
+
+  if (!GREENAPI_ID || !GREENAPI_TOKEN) {
+    return res.json({ success: false, error: 'Green API credentials not configured', config });
+  }
+
+  try {
+    const testComplaint = {
+      customerName: 'Test Customer',
+      customerId: '08643-000000',
+      area: 'Test Area',
+      category: 'Test Category',
+      description: 'This is a test complaint alert from BSNL Connection Manager.',
+      createdAt: new Date().toISOString()
+    };
+    const result = await sendGreenApiWhatsApp(testComplaint);
+    res.json({ success: true, config, apiResponse: result });
+  } catch (err) {
+    res.json({ success: false, error: err.message, config });
+  }
+});
+
 app.use((error, _req, res, _next) => {
   console.error(error);
   res.status(500).json({ error: error.message || 'Something went wrong. Please try again.' });
