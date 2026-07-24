@@ -4,6 +4,7 @@
     { "source": "/admin", "destination": "/admin.html" },
     { "source": "/user", "destination": "/user.html" },
     { "source": "/customer", "destination": "/user.html" },
+    { "source": "/complaints", "destination": "/complaints.html" },
     { "source": "/api/(.*)", "destination": "/server.js" }
   ]
 }

@@ -9,7 +9,7 @@ const fsp = require('fs/promises');
 const { MongoClient } = require('mongodb');
 
 // Use Google DNS to resolve SRV records (fixes BSNL broadband DNS issues)
-dns.setServers(['8.8.8.8', '8.8.4.4']);
+try { dns.setServers(['8.8.8.8', '8.8.4.4']); } catch {}
 
 /* ===========================
    Configuration
@@ -36,8 +36,8 @@ const WHATSAPP_APIKEY = process.env.WHATSAPP_APIKEY || '';
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || '';
 
 // Green API WhatsApp Config (FREE - No Python needed)
-const GREENAPI_ID = process.env.GREENAPI_ID || '710722691061';
-const GREENAPI_TOKEN = process.env.GREENAPI_TOKEN || 'f15e4e1a74ff4803b842ec79b84eb06b348b7cada78249d6a8';
+const GREENAPI_ID = process.env.GREENAPI_ID || '';
+const GREENAPI_TOKEN = process.env.GREENAPI_TOKEN || '';
 const ADMIN_WHATSAPP = process.env.ADMIN_WHATSAPP || '919030999657'; // Admin phone number
 
 const FIELDS = ['area', 'vlanNo', 'customerName', 'landlineNo', 'userId', 'notes'];
@@ -84,6 +84,7 @@ async function getCollection() {
   await connectionsCollection.createIndex({ id: 1 }, { unique: true }).catch(() => {});
   await connectionsCollection.createIndex({ area: 1 }).catch(() => {});
   await connectionsCollection.createIndex({ landlineNo: 1 }).catch(() => {});
+  await connectionsCollection.createIndex({ createdAt: -1 }).catch(() => {});
   await connectionsCollection.createIndex({ customerName: 'text', landlineNo: 'text', userId: 'text' }).catch(() => {});
 
   // Create indexes for complaints
@@ -178,8 +179,6 @@ async function sendGreenApiWhatsApp(complaint) {
       ? `https://${GREENAPI_ID.slice(0, 4)}.api.greenapi.com`
       : `https://api.green-api.com`;
     const url = `${host}/waInstance${GREENAPI_ID}/sendMessage/${GREENAPI_TOKEN}`;
-    console.log(`Green API: Sending to ${chatId}`);
-    console.log(`Green API URL: ${url}`);
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
@@ -188,8 +187,6 @@ async function sendGreenApiWhatsApp(complaint) {
 
     // Read raw response first to avoid JSON parse errors
     const rawText = await res.text();
-    console.log(`Green API Response Status: ${res.status}`);
-    console.log(`Green API Raw Response: ${rawText}`);
 
     let result;
     try {
@@ -429,13 +426,8 @@ const loginAttempts = new Map();
 const MAX_LOGIN_ATTEMPTS = 5;
 const LOGIN_LOCKOUT_MS = 60000;
 
-// Cleanup stale rate-limit entries every 5 minutes
-setInterval(() => {
-  const now = Date.now();
-  for (const [ip, record] of loginAttempts) {
-    if (now - record.first >= LOGIN_LOCKOUT_MS) loginAttempts.delete(ip);
-  }
-}, 300000);
+// Cleanup stale rate-limit entries (inline check on each login attempt)
+// Note: setInterval has no effect on Vercel serverless, so cleanup is done in-line
 
 // POST login
 app.post('/api/login', (req, res) => {
@@ -916,13 +908,15 @@ app.get('/api/complaints', requireAuth, async (req, res, next) => {
       .find(filter)
       .sort({ createdAt: -1 })
       .toArray();
-    const counts = {
-      total: await complaintsCol.countDocuments(),
-      open: await complaintsCol.countDocuments({ status: 'open' }),
-      'in-progress': await complaintsCol.countDocuments({ status: 'in-progress' }),
-      resolved: await complaintsCol.countDocuments({ status: 'resolved' }),
-      closed: await complaintsCol.countDocuments({ status: 'closed' })
-    };
+    // Single aggregation instead of 5 separate countDocuments calls
+    const statusCounts = await complaintsCol.aggregate([
+      { $group: { _id: '$status', count: { $sum: 1 } } }
+    ]).toArray();
+    const counts = { total: 0, open: 0, 'in-progress': 0, resolved: 0, closed: 0 };
+    for (const { _id, count } of statusCounts) {
+      if (_id in counts) counts[_id] = count;
+      counts.total += count;
+    }
     res.json({ complaints: complaints.map(stripId), counts });
   } catch (error) { next(error); }
 });
@@ -976,9 +970,12 @@ app.put('/api/complaints/:id/status', requireAuth, async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
-// Admin: Clear all complaints (fresh start)
+// Admin: Clear all complaints (fresh start) - requires ?confirm=true
 app.delete('/api/complaints/clear-all', requireAuth, async (req, res, next) => {
   try {
+    if (req.query.confirm !== 'true') {
+      return res.status(400).json({ error: 'Add ?confirm=true to confirm deletion of all complaints.' });
+    }
     const complaintsCol = await getComplaintsCollection();
     const result = await complaintsCol.deleteMany({});
     res.json({ success: true, deleted: result.deletedCount, message: `All ${result.deletedCount} complaints removed. Fresh start!` });
@@ -988,33 +985,6 @@ app.delete('/api/complaints/clear-all', requireAuth, async (req, res, next) => {
 /* ===========================
    Error Handler
    =========================== */
-// Test WhatsApp Alert (for debugging)
-app.get('/api/test-whatsapp', requireAuth, async (req, res) => {
-  const config = {
-    GREENAPI_ID: GREENAPI_ID ? `${GREENAPI_ID.slice(0, 4)}...` : 'NOT SET',
-    GREENAPI_TOKEN: GREENAPI_TOKEN ? `${GREENAPI_TOKEN.slice(0, 8)}...` : 'NOT SET',
-    ADMIN_WHATSAPP: ADMIN_WHATSAPP || 'NOT SET'
-  };
-
-  if (!GREENAPI_ID || !GREENAPI_TOKEN) {
-    return res.json({ success: false, error: 'Green API credentials not configured', config });
-  }
-
-  try {
-    const testComplaint = {
-      customerName: 'Test Customer',
-      customerId: '08643-000000',
-      area: 'Test Area',
-      category: 'Test Category',
-      description: 'This is a test complaint alert from BSNL Connection Manager.',
-      createdAt: new Date().toISOString()
-    };
-    const result = await sendGreenApiWhatsApp(testComplaint);
-    res.json({ success: true, config, apiResponse: result });
-  } catch (err) {
-    res.json({ success: false, error: err.message, config });
-  }
-});
 
 app.use((error, _req, res, _next) => {
   console.error(error);
