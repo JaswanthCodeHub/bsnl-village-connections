@@ -173,8 +173,12 @@ async function sendGreenApiWhatsApp(complaint) {
       `🕐 *Time:* ${time}`;
 
     const chatId = `${ADMIN_WHATSAPP}@c.us`;
-    const url = `https://api.green-api.com/waInstance${GREENAPI_ID}/sendMessage/${GREENAPI_TOKEN}`;
-    console.log(`Green API: Sending to ${chatId} via waInstance${GREENAPI_ID}`);
+    // Use instance-specific host from Green API console (apiUrl)
+    const host = GREENAPI_ID.length >= 4
+      ? `https://${GREENAPI_ID.slice(0, 4)}.api.greenapi.com`
+      : `https://api.green-api.com`;
+    const url = `${host}/waInstance${GREENAPI_ID}/sendMessage/${GREENAPI_TOKEN}`;
+    console.log(`Green API: Sending to ${chatId}`);
     console.log(`Green API URL: ${url}`);
     const res = await fetch(url, {
       method: 'POST',
