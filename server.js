@@ -976,6 +976,15 @@ app.put('/api/complaints/:id/status', requireAuth, async (req, res, next) => {
   } catch (error) { next(error); }
 });
 
+// Admin: Clear all complaints (fresh start)
+app.delete('/api/complaints/clear-all', requireAuth, async (req, res, next) => {
+  try {
+    const complaintsCol = await getComplaintsCollection();
+    const result = await complaintsCol.deleteMany({});
+    res.json({ success: true, deleted: result.deletedCount, message: `All ${result.deletedCount} complaints removed. Fresh start!` });
+  } catch (error) { next(error); }
+});
+
 /* ===========================
    Error Handler
    =========================== */
