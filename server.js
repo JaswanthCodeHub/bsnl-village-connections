@@ -36,8 +36,8 @@ const WHATSAPP_APIKEY = process.env.WHATSAPP_APIKEY || '';
 const N8N_WEBHOOK_URL = process.env.N8N_WEBHOOK_URL || '';
 
 // Green API WhatsApp Config (FREE - No Python needed)
-const GREENAPI_ID = process.env.GREENAPI_ID || '';        // e.g. 1101827463
-const GREENAPI_TOKEN = process.env.GREENAPI_TOKEN || '';   // e.g. 2c80332c91834c8d8c...
+const GREENAPI_ID = process.env.GREENAPI_ID || '710722691061';
+const GREENAPI_TOKEN = process.env.GREENAPI_TOKEN || 'f15e4e1a74ff4803b842ec79b84eb06b348b7cada78249d6a8';
 const ADMIN_WHATSAPP = process.env.ADMIN_WHATSAPP || '919030999657'; // Admin phone number
 
 const FIELDS = ['area', 'vlanNo', 'customerName', 'landlineNo', 'userId', 'notes'];
