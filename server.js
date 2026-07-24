@@ -160,7 +160,7 @@ async function sendWhatsAppAlert(complaint) {
 async function sendGreenApiWhatsApp(complaint) {
   if (!GREENAPI_ID || !GREENAPI_TOKEN) {
     console.log('Green API skipped: GREENAPI_ID or GREENAPI_TOKEN not set.');
-    return;
+    return { error: 'credentials not set' };
   }
   try {
     const time = new Date(complaint.createdAt).toLocaleString('en-IN', { timeZone: 'Asia/Kolkata' });
@@ -175,20 +175,34 @@ async function sendGreenApiWhatsApp(complaint) {
     const chatId = `${ADMIN_WHATSAPP}@c.us`;
     const url = `https://api.green-api.com/waInstance${GREENAPI_ID}/sendMessage/${GREENAPI_TOKEN}`;
     console.log(`Green API: Sending to ${chatId} via waInstance${GREENAPI_ID}`);
+    console.log(`Green API URL: ${url}`);
     const res = await fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ chatId, message: msg })
     });
-    const result = await res.json();
+
+    // Read raw response first to avoid JSON parse errors
+    const rawText = await res.text();
+    console.log(`Green API Response Status: ${res.status}`);
+    console.log(`Green API Raw Response: ${rawText}`);
+
+    let result;
+    try {
+      result = JSON.parse(rawText);
+    } catch {
+      result = { rawResponse: rawText, status: res.status };
+    }
+
     if (res.ok && result.idMessage) {
       console.log('Green API WhatsApp sent:', result.idMessage);
     } else {
-      console.error('Green API WhatsApp error response:', JSON.stringify(result));
+      console.error('Green API WhatsApp error:', res.status, rawText);
     }
     return result;
   } catch (err) {
     console.error('Green API WhatsApp failed:', err.message);
+    return { error: err.message };
   }
 }
 
